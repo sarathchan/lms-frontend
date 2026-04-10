@@ -1,0 +1,166 @@
+@import 'tailwindcss';
+
+/* Match app theme toggle (`html.dark`), not only `prefers-color-scheme`. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+}
+
+/* Design tokens — single source for light/dark (used by layout, UI, charts) */
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #4f46e5;
+  --border: #e2e8f0;
+  --sidebar: #ffffff;
+  --accent-warn-bg: #fffbeb;
+  --accent-warn-border: #fde68a;
+  --accent-warn-text: #92400e;
+  --overlay: rgba(15, 23, 42, 0.45);
+  /* Chart / semantic accents (theme-aware, no raw Tailwind in charts) */
+  --chart-blue: #2563eb;
+  --chart-green: #16a34a;
+  --chart-amber: #ca8a04;
+  --chart-red: #dc2626;
+  --chart-purple: #7c3aed;
+  --chart-orange: #f97316;
+  --chart-mid: #64748b;
+  --success: #059669;
+  --success-bg: color-mix(in srgb, #059669 14%, var(--card));
+  --danger: #dc2626;
+  --danger-bg: color-mix(in srgb, #dc2626 12%, var(--card));
+}
+
+.dark {
+  --bg: #020617;
+  --card: #0f172a;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --primary: #6366f1;
+  --border: #1e293b;
+  --sidebar: #0f172a;
+  --accent-warn-bg: rgba(120, 53, 15, 0.25);
+  --accent-warn-border: rgba(245, 158, 11, 0.35);
+  --accent-warn-text: #fcd34d;
+  --overlay: rgba(0, 0, 0, 0.55);
+  --chart-blue: #60a5fa;
+  --chart-green: #4ade80;
+  --chart-amber: #fbbf24;
+  --chart-red: #f87171;
+  --chart-purple: #a78bfa;
+  --chart-orange: #fb923c;
+  --chart-mid: #94a3b8;
+  --success: #34d399;
+  --success-bg: color-mix(in srgb, #34d399 18%, var(--card));
+  --danger: #f87171;
+  --danger-bg: color-mix(in srgb, #f87171 14%, var(--card));
+}
+
+html {
+  @apply antialiased;
+  /* Avoid animating background-color: during route transitions it can read as a brief wrong/dark frame. */
+  transition: color 0.2s ease;
+}
+
+body {
+  @apply min-h-screen font-sans;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: color 0.2s ease;
+}
+
+@layer base {
+  h1 {
+    @apply text-2xl font-bold tracking-tight;
+    color: var(--text);
+  }
+  h2 {
+    @apply text-xl font-semibold;
+    color: var(--text);
+  }
+  h3 {
+    @apply text-lg font-medium;
+    color: var(--text);
+  }
+  p {
+    @apply text-base leading-7;
+    color: color-mix(in srgb, var(--text) 88%, var(--muted));
+  }
+  label {
+    @apply text-sm font-medium;
+    color: var(--text);
+  }
+}
+
+@layer components {
+  .lms-page {
+    @apply mx-auto max-w-7xl space-y-6;
+  }
+  .lms-card {
+    @apply rounded-2xl border p-6 shadow-sm transition-shadow duration-200 hover:shadow-md;
+    background-color: var(--card);
+    border-color: var(--border);
+    color: var(--text);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 5%, transparent);
+  }
+  .lms-input {
+    @apply w-full rounded-xl px-4 py-2 shadow-sm transition-colors focus:outline-none focus:ring-2;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    caret-color: var(--primary);
+  }
+  .lms-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+  }
+  .lms-section {
+    @apply space-y-6;
+  }
+  .t-surface {
+    background-color: var(--card);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .mylms-skeleton-shimmer {
+    background-color: color-mix(in srgb, var(--muted) 18%, var(--card));
+    background-image: linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 38%,
+      color-mix(in srgb, var(--primary) 12%, var(--card)) 50%,
+      transparent 62%,
+      transparent 100%
+    );
+    background-size: 220% 100%;
+    animation: mylms-skeleton-shimmer-move 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes mylms-skeleton-shimmer-move {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+#root {
+  min-height: 100vh;
+  background-color: var(--bg);
+}
+
+/* Login route is always light; keep root from showing dark behind the gradient. */
+#root:has(.mylms-login-root) {
+  background-color: #f8fafc;
+}
