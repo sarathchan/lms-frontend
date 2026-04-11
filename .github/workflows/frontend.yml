@@ -3,8 +3,10 @@ name: Deploy Frontend
 on:
   push:
     branches: [main]
-    paths:
-      - 'frontend/**'
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: true
 
 jobs:
   build-deploy:
@@ -18,10 +20,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: 'npm'
 
       - name: Install & Build
         run: |
-          cd frontend
           npm install
           npm run build
 
@@ -34,7 +36,7 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync frontend/build s3://${{ secrets.S3_BUCKET_NAME }} --delete
+          aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
 
       - name: Invalidate CloudFront
         run: |
