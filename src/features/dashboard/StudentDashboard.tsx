@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Flame,
   GraduationCap,
+  MessageSquare,
   Play,
   Sparkles,
   Target,
@@ -129,6 +130,12 @@ type CoachingProgramOverview = {
 }
 
 type ProgramsMeOverview = { programs: CoachingProgramOverview[] }
+
+type CommAssignmentMine = {
+  assignmentId: string
+  test: { id: string; title: string; description: string | null }
+  latestAttempt: { id: string; status: string; submittedAt: string | null } | null
+}
 
 type StudentExamDashboard = {
   examType: { id: string; name: string; slug: string }
@@ -317,6 +324,17 @@ export function StudentDashboard() {
     },
   })
 
+  const { data: commAssigned } = useQuery({
+    queryKey: ['communication', 'assignments', 'me'],
+    queryFn: async () => {
+      const { data } = await api.get<CommAssignmentMine[]>(
+        'communication/assignments/me',
+      )
+      return data
+    },
+    enabled: user?.role === 'STUDENT',
+  })
+
   const startNeetTest = useMutation({
     mutationFn: async (testId: string) => {
       const { data: res } = await api.post<{ attemptId: string }>(
@@ -425,6 +443,65 @@ export function StudentDashboard() {
           </div>
         </div>
       </motion.section>
+
+      {user?.role === 'STUDENT' && (commAssigned?.length ?? 0) > 0 && (
+        <motion.section variants={dashboardItem} className="space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--text)]">
+                <MessageSquare className="mr-2 inline-block h-5 w-5 align-text-bottom text-[var(--primary)]" />
+                Communication tests
+              </h2>
+              <p className="text-sm text-[var(--muted)]">
+                Essay, listening, and speaking — assigned by your instructors.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="shrink-0 rounded-xl" asChild>
+              <Link to="/communication">View all</Link>
+            </Button>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {commAssigned!.slice(0, 4).map((row) => {
+              const done = row.latestAttempt?.status === 'SUBMITTED'
+              const draft = row.latestAttempt?.status === 'DRAFT'
+              return (
+                <li
+                  key={row.assignmentId}
+                  className={cn(surface, 'flex flex-col justify-between gap-3 p-4')}
+                >
+                  <div>
+                    <p className="font-semibold text-[var(--text)]">{row.test.title}</p>
+                    {row.test.description && (
+                      <p className="mt-1 line-clamp-2 text-xs text-[var(--muted)]">
+                        {row.test.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {!done && !draft && (
+                      <Button size="sm" className="rounded-xl" asChild>
+                        <Link to={`/communication/${row.test.id}`}>Start test</Link>
+                      </Button>
+                    )}
+                    {!done && draft && (
+                      <Button size="sm" className="rounded-xl" asChild>
+                        <Link to={`/communication/${row.test.id}`}>Continue</Link>
+                      </Button>
+                    )}
+                    {done && row.latestAttempt && (
+                      <Button size="sm" variant="secondary" className="rounded-xl" asChild>
+                        <Link to={`/communication/result/${row.latestAttempt.id}`}>
+                          Result
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </motion.section>
+      )}
 
       {user?.role === 'STUDENT' && examTypes.length > 0 && (
         <motion.section variants={dashboardItem} className="space-y-4">

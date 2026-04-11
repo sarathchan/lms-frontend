@@ -571,11 +571,11 @@ export function LearnLessonPage() {
                     <video
                       ref={videoRef}
                       className="aspect-video w-full"
-                      src={videoSrcWithResume}
+                      src={videoSrcWithResume ?? undefined}
                       controls
                       playsInline
                       preload="auto"
-                      // @ts-expect-error React 19 — hints fetch priority where supported
+                      // @ts-expect-error fetchPriority is supported on HTMLMediaElement in Chromium; React DOM types omit it for <video>
                       fetchPriority="high"
                       onLoadStart={() => setVideoBuffering(true)}
                       onWaiting={() => setVideoBuffering(true)}

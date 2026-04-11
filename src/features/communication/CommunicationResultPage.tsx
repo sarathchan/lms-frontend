@@ -60,12 +60,30 @@ export function CommunicationResultPage() {
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Status: {data.status}
         </p>
-        <p className="text-4xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
-          {pct}%
-        </p>
+        <div>
+          <p className="text-xs font-medium uppercase text-slate-500">Overall score</p>
+          <p className="text-4xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
+            {pct}%
+          </p>
+        </div>
         <p className="text-base leading-7 text-slate-700 dark:text-slate-300">
-          Overall score averages essay, listening, and speaking.
+          Average of essay, listening, and speaking (each scored 0–100 for display).
         </p>
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-700 dark:bg-slate-800/40">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Section breakdown
+          </h2>
+          <ul className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-300">
+            {rows.map((r) => (
+              <li key={r.questionId} className="flex justify-between gap-4">
+                <span className="font-medium">{r.type}</span>
+                <span className="tabular-nums text-slate-900 dark:text-slate-100">
+                  {r.score}/100
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-1">

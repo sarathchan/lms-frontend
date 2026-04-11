@@ -2,11 +2,14 @@ import { useEffect, useRef } from 'react'
 import { io, type Socket } from 'socket.io-client'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/authStore'
+import { getApiOrigin } from '../lib/apiConfig'
 
 /** Avoid Vite's /socket.io WS proxy — it often logs ECONNRESET on restart or disconnect. */
 function socketBaseUrl(): string {
   const fromEnv = import.meta.env.VITE_WS_ORIGIN as string | undefined
   if (fromEnv?.trim()) return fromEnv.replace(/\/$/, '')
+  const apiOrigin = getApiOrigin()
+  if (apiOrigin) return apiOrigin
   if (import.meta.env.DEV) return 'http://localhost:3000'
   return window.location.origin
 }

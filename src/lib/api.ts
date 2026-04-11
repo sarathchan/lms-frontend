@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAuthStore } from '../stores/authStore'
+import { getApiBaseUrl } from './apiConfig'
 
 function errMessage(data: unknown): string {
   if (data && typeof data === 'object' && 'message' in data) {
@@ -47,7 +48,9 @@ async function refreshAccessToken(): Promise<RefreshResponse> {
       throw new Error('No refresh token')
     }
     refreshInflight = axios
-      .post<RefreshResponse>('/api/v1/auth/refresh', { refreshToken: refresh })
+      .post<RefreshResponse>(`${getApiBaseUrl()}/auth/refresh`, {
+        refreshToken: refresh,
+      })
       .then(({ data }) => {
         useAuthStore.getState().setTokens(data.accessToken, data.refreshToken, {
           sessionId: data.sessionId,
@@ -62,7 +65,7 @@ async function refreshAccessToken(): Promise<RefreshResponse> {
 }
 
 export const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: getApiBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
 })
 

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { getApiBaseUrl } from '../../lib/apiConfig'
 import { z } from 'zod'
 import { useAuthStore, type AuthUser } from '../../stores/authStore'
 import { Button } from '../../components/ui/button'
@@ -63,7 +64,7 @@ export function LoginPage() {
           } | null
           examSelections: { examType: { id: string; name: string; slug: string } }[]
         } | null
-      }>('/api/v1/auth/login', {
+      }>(`${getApiBaseUrl()}/auth/login`, {
         email: values.email,
         password: values.password,
       })

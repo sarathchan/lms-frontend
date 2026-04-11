@@ -16,6 +16,7 @@ const variants = cva(
           'border border-[var(--border)] bg-[var(--card)] text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--muted)_12%,var(--card))]',
         ghost:
           'text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--muted)_14%,var(--card))]',
+        link: 'h-auto p-0 text-[var(--primary)] underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-10 px-4 py-2',

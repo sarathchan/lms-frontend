@@ -121,6 +121,21 @@ const CommunicationAdminPage = lazy(() =>
     default: m.CommunicationAdminPage,
   })),
 )
+const CommunicationQuestionsPage = lazy(() =>
+  import('./features/communication/CommunicationQuestionsPage').then((m) => ({
+    default: m.CommunicationQuestionsPage,
+  })),
+)
+const CommunicationTestsPage = lazy(() =>
+  import('./features/communication/CommunicationTestsPage').then((m) => ({
+    default: m.CommunicationTestsPage,
+  })),
+)
+const CommunicationAssignPage = lazy(() =>
+  import('./features/communication/CommunicationAssignPage').then((m) => ({
+    default: m.CommunicationAssignPage,
+  })),
+)
 const CommunicationTakePage = lazy(() =>
   import('./features/communication/CommunicationTakePage').then((m) => ({
     default: m.CommunicationTakePage,
@@ -268,6 +283,12 @@ export default function App() {
                   element={<CommunicationResultPage />}
                 />
                 <Route element={<StaffRoute />}>
+                  <Route
+                    path="questions"
+                    element={<CommunicationQuestionsPage />}
+                  />
+                  <Route path="tests" element={<CommunicationTestsPage />} />
+                  <Route path="assign" element={<CommunicationAssignPage />} />
                   <Route path="admin" element={<CommunicationAdminPage />} />
                 </Route>
                 <Route path=":testId" element={<CommunicationTakePage />} />

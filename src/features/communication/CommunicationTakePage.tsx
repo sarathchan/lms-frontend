@@ -80,7 +80,12 @@ export function CommunicationTakePage() {
     }
   }, [testId])
 
-  const { data: preview, isLoading: prevLoading } = useQuery({
+  const {
+    data: preview,
+    isLoading: prevLoading,
+    isError: prevError,
+    error: previewErr,
+  } = useQuery({
     queryKey: ['communication', 'preview', testId],
     queryFn: async () => {
       const { data } = await api.get<Preview>(
@@ -89,6 +94,7 @@ export function CommunicationTakePage() {
       return data
     },
     enabled: !!testId,
+    retry: false,
   })
 
   const { data: session, isLoading: sessLoading } = useQuery({
@@ -278,6 +284,27 @@ export function CommunicationTakePage() {
   }
 
   if (!testId) return <Navigate to="/communication" replace />
+
+  if (prevError) {
+    const msg =
+      typeof previewErr === 'object' &&
+      previewErr &&
+      'response' in previewErr &&
+      typeof (previewErr as { response?: { data?: { message?: string } } }).response
+        ?.data?.message === 'string'
+        ? (previewErr as { response: { data: { message: string } } }).response.data
+            .message
+        : 'You may not have access to this test (assignments are required for students).'
+    return (
+      <div className="lms-card space-y-4">
+        <h1 className="text-lg font-semibold">Cannot open test</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{msg}</p>
+        <Button asChild variant="outline">
+          <Link to="/communication">Back to communication</Link>
+        </Button>
+      </div>
+    )
+  }
 
   if (prevLoading || !preview) {
     return (
