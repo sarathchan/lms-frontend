@@ -23,6 +23,10 @@ jobs:
           cache: 'npm'
 
       - name: Install & Build
+        env:
+          # Optional: set in repo secrets to override `.env.production` without a commit.
+          VITE_API_ORIGIN: ${{ secrets.VITE_API_ORIGIN }}
+          VITE_WS_ORIGIN: ${{ secrets.VITE_WS_ORIGIN }}
         run: |
           npm install --legacy-peer-deps
           npm run build

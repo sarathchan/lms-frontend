@@ -1,6 +1,5 @@
 /**
- * Fallback API origin when `VITE_API_ORIGIN` is unset in a production build.
- * Local Nest default; set `VITE_API_ORIGIN` in `.env.production` for a remote API.
+ * Used in production only when `VITE_API_ORIGIN` is empty at build time.
+ * If `.env.production` sets `VITE_API_ORIGIN`, that value wins (see `getApiOrigin`).
  */
-// export const PRODUCTION_API_ORIGIN = 'http://localhost:3000'
 export const PRODUCTION_API_ORIGIN = 'http://13.201.48.42:3000'
