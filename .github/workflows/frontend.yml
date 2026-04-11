@@ -1,17 +1,13 @@
 name: Deploy Frontend
-
 on:
   push:
     branches: [main]
-
 concurrency:
   group: deploy-frontend
   cancel-in-progress: true
-
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,12 +20,14 @@ jobs:
 
       - name: Install & Build
         env:
-          # Optional: set in repo secrets to override `.env.production` without a commit.
           VITE_API_ORIGIN: ${{ secrets.VITE_API_ORIGIN }}
           VITE_WS_ORIGIN: ${{ secrets.VITE_WS_ORIGIN }}
         run: |
+          echo "VITE_API_ORIGIN is set: ${{ secrets.VITE_API_ORIGIN != '' }}"
           npm install --legacy-peer-deps
           npm run build
+          echo "Checking built files for API origin:"
+          grep -r "trycloudflare\|VITE_API" dist/assets/*.js | head -5 || echo "No match found"
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
@@ -40,7 +38,7 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+          aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }} --delete --exact-timestamps
 
       - name: Invalidate CloudFront
         run: |
