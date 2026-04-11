@@ -12,5 +12,5 @@ export const isLocal = isLocalFromEnv(import.meta.env.VITE_IS_LOCAL) ?? import.m
 /** API origin for local development (matches Vite proxy target). */
 export const LOCAL_API_ORIGIN = 'http://localhost:3000'
 
-/** Production API origin when `VITE_API_ORIGIN` is empty at build time (see `getApiOrigin`). */
+/** Production API origin whe `VITE_API_ORIGIN` is empty at build time (see `getApiOrigin`). */
 export const PRODUCTION_API_ORIGIN = 'https://combines-floyd-cap-tracking.trycloudflare.com'
