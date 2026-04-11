@@ -112,12 +112,12 @@ const ReportsPage = lazy(() =>
   })),
 )
 const CommunicationListPage = lazy(() =>
-  import('./features/communication/CommunicationListPage').then((m) => ({
+  import('./features/communication/CommunicationListPage.tsx').then((m) => ({
     default: m.CommunicationListPage,
   })),
 )
 const CommunicationAdminPage = lazy(() =>
-  import('./features/communication/CommunicationAdminPage').then((m) => ({
+  import('./features/communication/CommunicationAdminPage.tsx').then((m) => ({
     default: m.CommunicationAdminPage,
   })),
 )
