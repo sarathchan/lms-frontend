@@ -32,7 +32,19 @@ import { cn } from '../../lib/utils'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../stores/authStore'
 import { formatCourseProgressLabel } from '../../lib/formatCourseProgressLabel'
+import { getApiOrigin } from '../../lib/apiConfig'
 import { LessonVideoPlayer } from './LessonVideoPlayer'
+
+function readTimelineBufferedPct(video: HTMLVideoElement): number {
+  if (!video.buffered.length || !video.duration || !Number.isFinite(video.duration))
+    return 0
+  try {
+    const end = video.buffered.end(video.buffered.length - 1)
+    return Math.min(100, Math.round((end / video.duration) * 100))
+  } catch {
+    return 0
+  }
+}
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -149,11 +161,14 @@ function LessonTOC({
   courseId,
   activeLessonId,
   onPick,
+  onLessonHover,
 }: {
   outline: Outline
   courseId: string
   activeLessonId: string
   onPick?: () => void
+  /** Warm lesson JSON + playback URL when the user hovers another lesson in the outline. */
+  onLessonHover?: (lessonId: string) => void
 }) {
   return (
     <nav className="max-h-[50vh] space-y-3 overflow-y-auto md:max-h-[calc(100vh-9rem)]">
@@ -170,6 +185,9 @@ function LessonTOC({
                   <Link
                     to={`/learn/${courseId}/${mod.id}/${les.id}`}
                     onClick={() => onPick?.()}
+                    onMouseEnter={() => {
+                      if (les.id !== activeLessonId) onLessonHover?.(les.id)
+                    }}
                     className={cn(
                       'flex items-start gap-2 rounded-lg px-2 py-2 text-sm transition-colors',
                       active
@@ -207,6 +225,7 @@ export function LearnLessonPage() {
   const [pdfPages, setPdfPages] = useState<number | null>(null)
   const [tocOpen, setTocOpen] = useState(false)
   const [videoBuffering, setVideoBuffering] = useState(false)
+  const [bufferAheadPct, setBufferAheadPct] = useState(0)
   const completionBaseline = useRef<boolean | null>(null)
   const user = useAuthStore((s) => s.user)
 
@@ -229,14 +248,46 @@ export function LearnLessonPage() {
       return data
     },
     enabled: !!lessonId,
-    /** Presigned playback URLs change each fetch; keep one URL ~50m so the browser can cache video ranges. */
-    staleTime: 50 * 60 * 1000,
-    gcTime: 70 * 60 * 1000,
+    /** Same signed URL longer → better range cache reuse (matches server presign TTL). */
+    staleTime: 90 * 60 * 1000,
+    gcTime: 100 * 60 * 1000,
   })
 
   useEffect(() => {
     completionBaseline.current = null
   }, [lessonId])
+
+  useEffect(() => {
+    setBufferAheadPct(0)
+  }, [lessonId])
+
+  /** Warm TLS to the API origin so the lesson JSON (and presigned URL) returns sooner. */
+  useEffect(() => {
+    if (!lessonId || !courseId) return
+    const origin = getApiOrigin()
+    if (!origin) return
+    const l = document.createElement('link')
+    l.rel = 'preconnect'
+    l.href = origin
+    document.head.appendChild(l)
+    return () => {
+      if (l.parentNode) document.head.removeChild(l)
+    }
+  }, [lessonId, courseId])
+
+  const prefetchLessonContext = useCallback(
+    (id: string) => {
+      void qc.prefetchQuery({
+        queryKey: ['progress', 'lesson', id],
+        queryFn: async () => {
+          const { data } = await api.get<LessonCtx>(`progress/lessons/${id}`)
+          return data
+        },
+        staleTime: 90 * 60 * 1000,
+      })
+    },
+    [qc],
+  )
 
   /** Warm DNS/TLS to the media host as soon as we know the URL (lesson API often finishes before outline). */
   useEffect(() => {
@@ -316,6 +367,19 @@ export function LearnLessonPage() {
     if (i < 0 || i >= flatLessons.length - 1) return null
     return flatLessons[i + 1]!
   }, [flatLessons, lessonId])
+
+  useEffect(() => {
+    const id = nextLesson?.id
+    if (!id) return
+    void qc.prefetchQuery({
+      queryKey: ['progress', 'lesson', id],
+      queryFn: async () => {
+        const { data } = await api.get<LessonCtx>(`progress/lessons/${id}`)
+        return data
+      },
+      staleTime: 90 * 60 * 1000,
+    })
+  }, [nextLesson?.id, qc])
 
   const canStartAssessmentFromLesson = useMemo(() => {
     if (!ctx || ctx.lesson.type !== 'QUIZ' || !ctx.quizId || !lessonId)
@@ -518,6 +582,7 @@ export function LearnLessonPage() {
                 courseId={courseId}
                 activeLessonId={lessonId}
                 onPick={() => setTocOpen(false)}
+                onLessonHover={prefetchLessonContext}
               />
             ) : (
               <div className="space-y-3 pt-2" aria-busy="true">
@@ -552,6 +617,7 @@ export function LearnLessonPage() {
               outline={outline}
               courseId={courseId}
               activeLessonId={lessonId}
+              onLessonHover={prefetchLessonContext}
             />
           ) : (
             <div className="space-y-3" aria-busy="true">
@@ -640,10 +706,26 @@ export function LearnLessonPage() {
                       preload="auto"
                       // @ts-expect-error fetchPriority is supported on HTMLMediaElement in Chromium; React DOM types omit it for <video>
                       fetchPriority="high"
-                      onLoadStart={() => setVideoBuffering(true)}
+                      onLoadStart={() => {
+                        setBufferAheadPct(0)
+                        setVideoBuffering(true)
+                      }}
+                      onProgress={(e) =>
+                        setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
+                      }
+                      onTimeUpdate={(e) =>
+                        setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
+                      }
                       onWaiting={() => setVideoBuffering(true)}
+                      onStalled={() => setVideoBuffering(true)}
                       onPlaying={() => setVideoBuffering(false)}
-                      onCanPlay={() => setVideoBuffering(false)}
+                      onCanPlay={(e) => {
+                        setVideoBuffering(false)
+                        setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
+                      }}
+                      onLoadedData={(e) => {
+                        setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
+                      }}
                       onError={() => setVideoBuffering(false)}
                       onLoadedMetadata={(e) => {
                         const el = e.currentTarget
@@ -652,6 +734,16 @@ export function LearnLessonPage() {
                         }
                       }}
                     />
+                    <div
+                      className="flex h-1 w-full items-center bg-slate-900"
+                      aria-hidden
+                      title="Buffered ahead on the timeline"
+                    >
+                      <div
+                        className="h-full bg-indigo-500/70 transition-[width] duration-200 ease-out"
+                        style={{ width: `${bufferAheadPct}%` }}
+                      />
+                    </div>
                     {videoBuffering && (
                       <div
                         className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/35"

@@ -41,6 +41,7 @@ export function LessonVideoPlayer({
 
     if (!hlsMode) {
       video.src = src
+      video.load()
       return () => {
         video.removeAttribute('src')
         video.load()
@@ -57,8 +58,10 @@ export function LessonVideoPlayer({
           enableWorker: true,
           lowLatencyMode: false,
           startFragPrefetch: true,
-          maxBufferLength: 30,
-          maxMaxBufferLength: 120,
+          maxBufferLength: 45,
+          maxMaxBufferLength: 300,
+          maxBufferSize: 120 * 1000 * 1000,
+          maxBufferHole: 0.5,
         })
         hlsRef.current = instance
         instance.loadSource(src)
