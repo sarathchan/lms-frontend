@@ -504,7 +504,7 @@ function LessonRowEditor({
   } | null>(null)
   const save = useMutation({
     mutationFn: () =>
-      api.patch(`courses/lessons/${lesson.id}`, { title }),
+      api.post(`courses/lessons/${lesson.id}/update`, { title }),
     onSuccess: () => {
       toast.success('Lesson updated')
       onInvalidate()
@@ -525,7 +525,7 @@ function LessonRowEditor({
         kind,
         setUploadProgress,
       )
-      await api.patch(`courses/lessons/${lesson.id}`, { mediaId })
+      await api.post(`courses/lessons/${lesson.id}/update`, { mediaId })
       toast.success('File attached')
       onInvalidate()
     } finally {

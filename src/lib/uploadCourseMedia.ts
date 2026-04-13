@@ -77,15 +77,17 @@ export async function uploadCourseMediaMultipart(
         const { data: presigned } = await api.get<{ url: string }>(
           `media/multipart/${init.sessionId}/presign/${partNumber}`,
         )
+        // Uint8Array avoids inheriting File MIME (fewer CORS preflight headers on the S3 PUT).
+        const body = new Uint8Array(await blob.arrayBuffer())
         const res = await fetch(presigned.url, {
           method: 'PUT',
-          body: blob,
+          body,
         })
         if (!res.ok) {
           const hint = await res.text().catch(() => '')
           throw new Error(
             hint ||
-              `Upload part ${partNumber} failed (${res.status}). Check S3 bucket CORS: allow PUT from your LMS origin.`,
+              `Upload part ${partNumber} failed (${res.status}). Configure the S3 bucket CORS rule: allow PUT from your app origin and ExposeHeader ETag (see docs/infrastructure.md).`,
           )
         }
         const etag = res.headers.get('ETag') ?? res.headers.get('etag')
