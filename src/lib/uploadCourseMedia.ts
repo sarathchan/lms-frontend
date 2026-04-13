@@ -15,8 +15,31 @@ export type UploadProgressPayload = {
   total: number
 }
 
+/** Parallel direct PUTs to S3 (presigned per part). Tune if clients are very slow. */
+const MPU_PUT_CONCURRENCY = 4
+
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let next = 0
+  async function worker() {
+    while (true) {
+      const i = next++
+      if (i >= items.length) break
+      results[i] = await fn(items[i]!, i)
+    }
+  }
+  const n = Math.min(limit, Math.max(1, items.length))
+  await Promise.all(Array.from({ length: n }, () => worker()))
+  return results
+}
+
 /**
- * Chunked upload to the API (S3 multipart on the server). No client-side file size cap.
+ * Multipart upload: each part is PUT directly to S3 using a presigned URL (no large body through your API/nginx).
+ * Small JSON calls only: init, presign per part, register ETags, complete.
  */
 export async function uploadCourseMediaMultipart(
   file: File,
@@ -39,22 +62,51 @@ export async function uploadCourseMediaMultipart(
     sessionId = init.sessionId
     const { partSize, totalParts } = init
 
-    for (let p = 1; p <= totalParts; p++) {
+    const partSpecs = Array.from({ length: totalParts }, (_, idx) => {
+      const p = idx + 1
       const start = (p - 1) * partSize
       const end = Math.min(start + partSize, file.size)
-      const chunk = file.slice(start, end)
-      const form = new FormData()
-      form.append('chunk', chunk, `part-${p}`)
-      await api.post(
-        `media/multipart/${init.sessionId}/part/${p}`,
-        form,
-      )
-      onProgress({
-        percent: Math.min(100, Math.round((end / file.size) * 100)),
-        loaded: end,
-        total: file.size,
-      })
-    }
+      return { partNumber: p, blob: file.slice(start, end) }
+    })
+
+    let uploaded = 0
+    const partsMeta = await mapWithConcurrency(
+      partSpecs,
+      MPU_PUT_CONCURRENCY,
+      async ({ partNumber, blob }) => {
+        const { data: presigned } = await api.get<{ url: string }>(
+          `media/multipart/${init.sessionId}/presign/${partNumber}`,
+        )
+        const res = await fetch(presigned.url, {
+          method: 'PUT',
+          body: blob,
+        })
+        if (!res.ok) {
+          const hint = await res.text().catch(() => '')
+          throw new Error(
+            hint ||
+              `Upload part ${partNumber} failed (${res.status}). Check S3 bucket CORS: allow PUT from your LMS origin.`,
+          )
+        }
+        const etag = res.headers.get('ETag') ?? res.headers.get('etag')
+        if (!etag) {
+          throw new Error(
+            `Part ${partNumber}: S3 did not expose ETag. Add <ExposeHeader>ETag</ExposeHeader> (and AllowHeader for content-type if needed) to the bucket CORS configuration.`,
+          )
+        }
+        uploaded += blob.size
+        onProgress({
+          percent: Math.min(99, Math.round((uploaded / file.size) * 100)),
+          loaded: uploaded,
+          total: file.size,
+        })
+        return { partNumber, etag }
+      },
+    )
+
+    await api.post(`media/multipart/${init.sessionId}/register-parts`, {
+      parts: partsMeta,
+    })
 
     await api.post(`media/multipart/${init.sessionId}/complete`, {})
     onProgress({ percent: 100, loaded: file.size, total: file.size })

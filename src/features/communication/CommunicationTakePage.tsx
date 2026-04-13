@@ -147,7 +147,9 @@ export function CommunicationTakePage() {
 
   const saveMut = useMutation({
     mutationFn: async (responses: Resp[]) => {
-      await api.patch(`communication/attempts/${attemptId}`, { responses })
+      await api.post(`communication/attempts/${attemptId}/save`, {
+        responses,
+      })
     },
   })
 
@@ -277,7 +279,7 @@ export function CommunicationTakePage() {
 
   const beforeAdvance = async () => {
     if (!attemptId || !session) return
-    await api.patch(`communication/attempts/${attemptId}`, {
+    await api.post(`communication/attempts/${attemptId}/save`, {
       responses: mergePayload(),
     })
     advanceMut.mutate()
@@ -569,7 +571,7 @@ export function CommunicationTakePage() {
                   disabled={submitMut.isPending}
                   onClick={async () => {
                     if (!attemptId || !session) return
-                    await api.patch(`communication/attempts/${attemptId}`, {
+                    await api.post(`communication/attempts/${attemptId}/save`, {
                       responses: mergePayload(),
                     })
                     submitMut.mutate()

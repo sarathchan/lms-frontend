@@ -32,6 +32,7 @@ import { cn } from '../../lib/utils'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../stores/authStore'
 import { formatCourseProgressLabel } from '../../lib/formatCourseProgressLabel'
+import { LessonVideoPlayer } from './LessonVideoPlayer'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -73,6 +74,8 @@ type LessonCtx = {
   courseTitle: string
   quizId: string | null
   playbackUrl: string | null
+  /** When set, helps pick HLS vs MP4 and hints the decoder. */
+  playbackMime?: string | null
   externalUrl: string | null
   progress: {
     videoPositionSec: number
@@ -207,7 +210,7 @@ export function LearnLessonPage() {
   const completionBaseline = useRef<boolean | null>(null)
   const user = useAuthStore((s) => s.user)
 
-  const { data: outline, isLoading: outlineLoading } = useQuery({
+  const { data: outline } = useQuery({
     queryKey: ['progress', 'outline', courseId],
     queryFn: async () => {
       const { data } = await api.get<Outline>(
@@ -216,6 +219,7 @@ export function LearnLessonPage() {
       return data
     },
     enabled: !!courseId,
+    staleTime: 60 * 1000,
   })
 
   const { data: ctx, isLoading: ctxLoading } = useQuery({
@@ -233,6 +237,32 @@ export function LearnLessonPage() {
   useEffect(() => {
     completionBaseline.current = null
   }, [lessonId])
+
+  /** Warm DNS/TLS to the media host as soon as we know the URL (lesson API often finishes before outline). */
+  useEffect(() => {
+    if (!ctx || ctx.lesson.type !== 'VIDEO') return
+    const raw = ctx.playbackUrl || ctx.externalUrl
+    if (!raw) return
+    let origin: string
+    try {
+      origin = new URL(raw).origin
+    } catch {
+      return
+    }
+    const links: HTMLLinkElement[] = []
+    for (const rel of ['dns-prefetch', 'preconnect'] as const) {
+      const l = document.createElement('link')
+      l.rel = rel
+      l.href = origin
+      document.head.appendChild(l)
+      links.push(l)
+    }
+    return () => {
+      for (const l of links) {
+        if (l.parentNode) document.head.removeChild(l)
+      }
+    }
+  }, [ctx?.lesson.type, ctx?.playbackUrl, ctx?.externalUrl])
 
   useEffect(() => {
     if (!ctx || ctx.lesson.id !== lessonId) return
@@ -418,7 +448,7 @@ export function LearnLessonPage() {
     return <Navigate to="/courses" replace />
   }
 
-  if (outlineLoading || ctxLoading || !outline || !ctx) {
+  if (ctxLoading || !ctx) {
     return (
       <div className="flex min-h-screen">
         <Skeleton className="hidden w-72 shrink-0 md:block" />
@@ -482,12 +512,21 @@ export function LearnLessonPage() {
               <ArrowLeft className="h-4 w-4" />
               Back to course
             </Link>
-            <LessonTOC
-              outline={outline}
-              courseId={courseId}
-              activeLessonId={lessonId}
-              onPick={() => setTocOpen(false)}
-            />
+            {outline ? (
+              <LessonTOC
+                outline={outline}
+                courseId={courseId}
+                activeLessonId={lessonId}
+                onPick={() => setTocOpen(false)}
+              />
+            ) : (
+              <div className="space-y-3 pt-2" aria-busy="true">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-9 w-full rounded-lg" />
+                <Skeleton className="h-9 w-full rounded-lg" />
+                <Skeleton className="h-9 w-full rounded-lg" />
+              </div>
+            )}
           </SheetContent>
         </Sheet>
         <span className="truncate text-sm font-medium text-[var(--text)]">
@@ -508,11 +547,20 @@ export function LearnLessonPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
             Modules & lessons
           </p>
-          <LessonTOC
-            outline={outline}
-            courseId={courseId}
-            activeLessonId={lessonId}
-          />
+          {outline ? (
+            <LessonTOC
+              outline={outline}
+              courseId={courseId}
+              activeLessonId={lessonId}
+            />
+          ) : (
+            <div className="space-y-3" aria-busy="true">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+            </div>
+          )}
         </div>
       </aside>
 
@@ -535,29 +583,42 @@ export function LearnLessonPage() {
             )}
           </div>
           <div className="mt-4">
-            <div className="mb-1 flex justify-between text-xs font-medium text-[var(--muted)]">
-              <span>Course progress</span>
-              <span>{outline.percent}%</span>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-[var(--border)]">
-              <motion.div
-                className="h-full rounded-full bg-[var(--primary)]"
-                initial={false}
-                animate={{ width: `${outline.percent}%` }}
-                transition={{ type: 'spring', stiffness: 100, damping: 22 }}
-              />
-            </div>
-            {outline.totalLessons != null && outline.completedLessons != null && (
-              <p className="mt-2 text-xs text-[var(--muted)]">
-                {formatCourseProgressLabel({
-                  completedLessons: outline.completedLessons,
-                  totalLessons: outline.totalLessons,
-                  completedLearningLessons: outline.completedLearningLessons,
-                  totalLearningLessons: outline.totalLearningLessons,
-                  completedAssessments: outline.completedAssessments,
-                  totalAssessments: outline.totalAssessments,
-                })}
-              </p>
+            {outline ? (
+              <>
+                <div className="mb-1 flex justify-between text-xs font-medium text-[var(--muted)]">
+                  <span>Course progress</span>
+                  <span>{outline.percent}%</span>
+                </div>
+                <div className="h-2.5 overflow-hidden rounded-full bg-[var(--border)]">
+                  <motion.div
+                    className="h-full rounded-full bg-[var(--primary)]"
+                    initial={false}
+                    animate={{ width: `${outline.percent}%` }}
+                    transition={{ type: 'spring', stiffness: 100, damping: 22 }}
+                  />
+                </div>
+                {outline.totalLessons != null &&
+                  outline.completedLessons != null && (
+                    <p className="mt-2 text-xs text-[var(--muted)]">
+                      {formatCourseProgressLabel({
+                        completedLessons: outline.completedLessons,
+                        totalLessons: outline.totalLessons,
+                        completedLearningLessons: outline.completedLearningLessons,
+                        totalLearningLessons: outline.totalLearningLessons,
+                        completedAssessments: outline.completedAssessments,
+                        totalAssessments: outline.totalAssessments,
+                      })}
+                    </p>
+                  )}
+              </>
+            ) : (
+              <div className="space-y-2" aria-busy="true">
+                <div className="flex justify-between">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-2.5 w-full rounded-full" />
+              </div>
             )}
           </div>
         </header>
@@ -568,10 +629,12 @@ export function LearnLessonPage() {
               <div className="relative mx-auto max-w-4xl overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-slate-900/10 dark:ring-white/10">
                 {videoSrc ? (
                   <>
-                    <video
-                      ref={videoRef}
+                    <LessonVideoPlayer
+                      key={lessonId}
+                      videoRef={videoRef}
+                      src={videoSrcWithResume ?? ''}
+                      mimeType={ctx.playbackMime}
                       className="aspect-video w-full"
-                      src={videoSrcWithResume ?? undefined}
                       controls
                       playsInline
                       preload="auto"
