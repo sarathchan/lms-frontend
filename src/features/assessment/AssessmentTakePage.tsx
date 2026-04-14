@@ -128,6 +128,9 @@ export function AssessmentTakePage() {
       })
       return res
     },
+    onError: () => {
+      toast.error('Could not submit. Check your connection and try again.')
+    },
     onSuccess: (res) => {
       try {
         if (draftKey) localStorage.removeItem(draftKey)
@@ -204,10 +207,12 @@ export function AssessmentTakePage() {
     ? Math.round(((index + 1) / sorted.length) * 100)
     : 0
 
+  const navDisabled = submit.isPending || (remain !== null && remain <= 0)
+
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-6">
-      <div className="mb-5 w-full">
-        <div className="mb-2 flex justify-between text-xs font-medium text-[var(--muted)]">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-4 py-6 pb-36 lg:pb-8">
+      <div className="mb-5 w-full space-y-2">
+        <div className="mb-2 flex justify-between text-sm font-medium text-[var(--muted)] lg:text-xs">
           <span>
             Question {index + 1} of {sorted.length}
           </span>
@@ -221,7 +226,7 @@ export function AssessmentTakePage() {
             transition={{ type: 'spring', stiffness: 120, damping: 22 }}
           />
         </div>
-        <p className="mt-2 text-xs text-[var(--muted)]">
+        <p className="mt-2 text-sm text-[var(--muted)] lg:text-xs">
           <span className="font-medium text-[var(--text)]">{answeredCount}</span>{' '}
           answered ·{' '}
           <span className="font-medium text-[var(--text)]">{unansweredCount}</span>{' '}
@@ -229,27 +234,27 @@ export function AssessmentTakePage() {
         </p>
       </div>
 
-      <div className="flex flex-1 flex-col gap-6 lg:flex-row lg:gap-8">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row lg:gap-8">
       <aside className="w-full shrink-0 lg:w-52">
         <Link
           to={`/assessment/${quizId}`}
-          className="mb-4 inline-block text-sm font-medium text-[var(--primary)] hover:underline"
+          className="mb-4 inline-flex min-h-11 min-w-11 items-center rounded-xl text-base font-medium text-[var(--primary)] transition active:scale-[0.98] hover:bg-[color-mix(in_srgb,var(--muted)_10%,var(--card))] hover:underline"
         >
           ← Intro
         </Link>
-        <p className="mb-2 text-xs font-semibold uppercase text-[var(--muted)]">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
           Questions
         </p>
-        <div className="grid grid-cols-6 gap-2 sm:grid-cols-8 lg:grid-cols-5">
+        <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-5">
           {sorted.map((_, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setIndex(i)}
               className={cn(
-                'flex h-10 items-center justify-center rounded-xl text-sm font-medium transition-colors duration-200',
+                'flex min-h-11 min-w-11 items-center justify-center rounded-xl text-base font-semibold transition-all duration-200 active:scale-95 lg:text-sm',
                 i === index
-                  ? 'bg-[var(--primary)] text-white shadow-md'
+                  ? 'bg-[var(--primary)] text-white shadow-md ring-2 ring-[color-mix(in_srgb,var(--primary)_35%,transparent)]'
                   : answered(i)
                     ? 'bg-[var(--success-bg)] text-[var(--success)]'
                     : 'bg-[color-mix(in_srgb,var(--border)_65%,var(--card))] text-[var(--text)] hover:bg-[var(--border)]',
@@ -262,19 +267,19 @@ export function AssessmentTakePage() {
       </aside>
 
       <div className="min-w-0 flex-1">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 py-4 shadow-sm transition-colors duration-200">
-          <div>
-            <h1 className="text-lg font-bold text-[var(--text)] sm:text-xl">
+        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 shadow-sm transition-colors duration-200 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5 sm:py-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-[var(--text)] lg:text-2xl">
               {data.lessonTitle}
             </h1>
-            <p className="text-sm text-[var(--muted)]">
+            <p className="mt-1 text-base leading-relaxed text-[var(--muted)] lg:text-sm">
               Take your time—selected answers are highlighted clearly.
             </p>
           </div>
           {remain !== null && (
             <div
               className={cn(
-                'rounded-xl px-4 py-2 text-lg font-mono font-semibold transition-colors',
+                'inline-flex min-h-11 min-w-fit items-center justify-center rounded-xl px-4 py-2 text-lg font-mono font-semibold tabular-nums transition-colors',
                 remain < 60
                   ? 'bg-[var(--danger-bg)] text-[var(--danger)]'
                   : 'bg-[color-mix(in_srgb,var(--border)_50%,var(--card))] text-[var(--text)]',
@@ -285,32 +290,33 @@ export function AssessmentTakePage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-md transition-colors duration-200">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-md transition-colors duration-200 sm:p-6">
           {q && (
             <>
-              <p className="text-lg font-medium leading-relaxed text-[var(--text)]">
+              <p className="text-lg font-medium leading-relaxed text-[var(--text)] lg:text-base">
                 {q.prompt}
               </p>
-              <p className="mt-2 inline-block rounded-full bg-[color-mix(in_srgb,var(--border)_40%,var(--card))] px-2.5 py-0.5 text-xs font-medium text-[var(--muted)]">
+              <p className="mt-3 inline-flex min-h-8 items-center rounded-full bg-[color-mix(in_srgb,var(--border)_40%,var(--card))] px-3 py-1 text-sm font-medium text-[var(--muted)]">
                 {q.type}
               </p>
 
-              <div className="mt-6">
+              <div className="mt-6 space-y-4">
                 {q.type === 'MCQ' && mcqOpts.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-3" role="radiogroup" aria-label="Answer choices">
                     {mcqOpts.map((opt, j) => (
                       <label
                         key={j}
                         className={cn(
-                          'flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3.5 transition-all duration-200',
+                          'flex min-h-[3.25rem] cursor-pointer items-start gap-4 rounded-2xl border-2 px-4 py-4 text-base leading-relaxed transition-all duration-200 active:scale-[0.99]',
                           answers[index] === j
-                            ? 'border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_10%,var(--card))] shadow-sm ring-2 ring-[color-mix(in_srgb,var(--primary)_22%,transparent)]'
-                            : 'border-[var(--border)] hover:border-[color-mix(in_srgb,var(--muted)_35%,var(--border))]',
+                            ? 'border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_14%,var(--card))] shadow-md ring-2 ring-[color-mix(in_srgb,var(--primary)_28%,transparent)]'
+                            : 'border-[var(--border)] hover:border-[color-mix(in_srgb,var(--muted)_40%,var(--border))]',
                         )}
                       >
                         <input
                           type="radio"
                           name={`q-${q.id}`}
+                          className="mt-1 size-5 shrink-0 accent-[var(--primary)]"
                           checked={answers[index] === j}
                           onChange={() => {
                             const n = [...answers]
@@ -318,9 +324,7 @@ export function AssessmentTakePage() {
                             setAnswers(n)
                           }}
                         />
-                        <span className="leading-7 text-[var(--text)]">
-                          {opt}
-                        </span>
+                        <span className="flex-1 text-[var(--text)]">{opt}</span>
                       </label>
                     ))}
                   </div>
@@ -333,7 +337,7 @@ export function AssessmentTakePage() {
                       answer below; your instructor can review it.
                     </p>
                     <input
-                      className="lms-input py-3"
+                      className="lms-input"
                       placeholder="Your answer"
                       value={String(answers[index] ?? '')}
                       onChange={(e) => {
@@ -348,7 +352,7 @@ export function AssessmentTakePage() {
                 {(q.type === 'FILL_BLANK' ||
                   q.type === 'FILE_UPLOAD') && (
                   <input
-                    className="lms-input py-3"
+                    className="lms-input"
                     placeholder={
                       q.type === 'FILE_UPLOAD'
                         ? 'Paste file URL'
@@ -381,11 +385,11 @@ export function AssessmentTakePage() {
           )}
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-6 hidden flex-wrap items-center justify-between gap-3 lg:flex">
           <Button
             variant="outline"
             className="rounded-xl"
-            disabled={index <= 0}
+            disabled={index <= 0 || submit.isPending}
             onClick={() => setIndex((i) => i - 1)}
           >
             Previous
@@ -394,6 +398,7 @@ export function AssessmentTakePage() {
             {index < sorted.length - 1 ? (
               <Button
                 className="rounded-xl"
+                disabled={submit.isPending}
                 onClick={() => setIndex((i) => i + 1)}
               >
                 Next
@@ -401,18 +406,50 @@ export function AssessmentTakePage() {
             ) : (
               <Button
                 className="rounded-xl"
-                disabled={
-                  submit.isPending ||
-                  (remain !== null && remain <= 0)
-                }
+                loading={submit.isPending}
+                disabled={navDisabled}
                 onClick={() => requestSubmit()}
               >
-                {submit.isPending ? 'Submitting…' : 'Submit assessment'}
+                Submit assessment
               </Button>
             )}
           </div>
         </div>
       </div>
+      </div>
+
+      {/* Thumb zone: primary navigation (mobile / tablet) */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border)] bg-[var(--card)]/95 p-4 backdrop-blur-md pb-[max(1rem,env(safe-area-inset-bottom,0px))] lg:hidden">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              className="w-full rounded-xl"
+              disabled={index <= 0 || submit.isPending}
+              onClick={() => setIndex((i) => i - 1)}
+            >
+              Previous
+            </Button>
+            {index < sorted.length - 1 ? (
+              <Button
+                className="w-full rounded-xl"
+                disabled={submit.isPending}
+                onClick={() => setIndex((i) => i + 1)}
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                className="w-full rounded-xl"
+                loading={submit.isPending}
+                disabled={navDisabled}
+                onClick={() => requestSubmit()}
+              >
+                Submit
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

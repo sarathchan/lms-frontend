@@ -20,7 +20,7 @@ const TAB_KEYS = [
 ] as const
 
 const settingsCardClass =
-  'rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm transition-colors duration-200 sm:p-6'
+  'rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition-colors duration-200 lg:p-6'
 
 export function SettingsPage() {
   const [params, setParams] = useSearchParams()
@@ -163,7 +163,7 @@ export function SettingsPage() {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-3xl space-y-6"
+      className="mx-auto w-full min-w-0 max-w-3xl space-y-4 lg:space-y-6"
     >
       <div>
         <h1>Settings</h1>
@@ -179,7 +179,7 @@ export function SettingsPage() {
         }}
         className="w-full"
       >
-        <TabsList className="w-full justify-start">
+        <TabsList className="w-full justify-start gap-1">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -268,7 +268,7 @@ export function SettingsPage() {
                   </div>
                   <Button
                     type="button"
-                    className="rounded-xl"
+                    className="w-full rounded-xl sm:w-auto"
                     disabled={
                       changePasswordMut.isPending ||
                       !currentPassword ||
@@ -322,7 +322,11 @@ export function SettingsPage() {
                   In-app & push
                 </span>
               </label>
-              <Button type="button" className="rounded-xl" onClick={saveNotif}>
+              <Button
+                type="button"
+                className="w-full rounded-xl sm:w-auto"
+                onClick={saveNotif}
+              >
                 Save preferences
               </Button>
             </CardContent>
@@ -339,11 +343,11 @@ export function SettingsPage() {
                 Uses the same theme as the sidebar toggle. Your choice is saved
                 on this device.
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   type="button"
                   variant={!isDark ? 'default' : 'outline'}
-                  className="rounded-xl"
+                  className="w-full rounded-xl sm:w-auto"
                   onClick={() => setDark(false)}
                 >
                   Light
@@ -351,7 +355,7 @@ export function SettingsPage() {
                 <Button
                   type="button"
                   variant={isDark ? 'default' : 'outline'}
-                  className="rounded-xl"
+                  className="w-full rounded-xl sm:w-auto"
                   onClick={() => setDark(true)}
                 >
                   Dark
@@ -380,7 +384,7 @@ export function SettingsPage() {
                 />
                 <Button
                   type="button"
-                  className="rounded-xl"
+                  className="w-full rounded-xl sm:w-auto"
                   disabled={orgMut.isPending}
                   onClick={() => orgMut.mutate()}
                 >

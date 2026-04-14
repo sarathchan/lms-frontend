@@ -159,16 +159,16 @@ export function CoursesPage() {
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-4 lg:space-y-6"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <h1>Courses</h1>
           <p className="text-slate-500 dark:text-slate-400">
             Discover content, track progress, and jump back in anytime.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
           <input
             placeholder="Search courses…"
             value={search}
@@ -176,7 +176,7 @@ export function CoursesPage() {
               setSearch(e.target.value)
               setPage(1)
             }}
-            className="w-full min-w-[10rem] max-w-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:max-w-xs"
           />
           {isStaff && (
             <select
@@ -186,7 +186,7 @@ export function CoursesPage() {
                 setCourseStatus(e.target.value as CourseListStatus)
                 setPage(1)
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:w-auto"
             >
               <option value="all">All courses</option>
               <option value="published">Published</option>
@@ -195,7 +195,11 @@ export function CoursesPage() {
             </select>
           )}
           {isStaff && (
-            <Button type="button" onClick={() => setCreateOpen(true)} className="rounded-xl">
+            <Button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="w-full rounded-xl sm:w-auto"
+            >
               <Plus className="h-4 w-4" />
               New course
             </Button>
@@ -208,7 +212,7 @@ export function CoursesPage() {
           <DialogHeader>
             <DialogTitle>Create course</DialogTitle>
           </DialogHeader>
-          <label className="grid gap-1 text-sm">
+          <label className="grid w-full gap-1 text-sm">
             Exam type
             <select
               className="lms-input"
@@ -226,7 +230,7 @@ export function CoursesPage() {
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-sm">
+          <label className="grid w-full gap-1 text-sm">
             Subject
             <select
               className="lms-input"
@@ -242,7 +246,7 @@ export function CoursesPage() {
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-sm">
+          <label className="grid w-full gap-1 text-sm">
             Title
             <input
               className="lms-input"
@@ -250,7 +254,7 @@ export function CoursesPage() {
               onChange={(e) => setTitle(e.target.value)}
             />
           </label>
-          <label className="grid gap-1 text-sm">
+          <label className="grid w-full gap-1 text-sm">
             Description (optional)
             <textarea
               className="lms-input min-h-[5rem] resize-y"
@@ -275,7 +279,7 @@ export function CoursesPage() {
       </Dialog>
 
       {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-72 rounded-2xl" />
           ))}
@@ -312,7 +316,7 @@ export function CoursesPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-6">
             {rows.map((c, i) => {
               const pct = progressByCourse.get(c.id)
               const showProgress = isStudent && pct !== undefined

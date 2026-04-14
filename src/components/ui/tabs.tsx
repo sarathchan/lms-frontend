@@ -11,7 +11,7 @@ export const TabsList = forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'inline-flex h-11 flex-wrap items-center gap-1 rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--muted)_10%,var(--card))] p-1',
+      'inline-flex h-auto min-h-11 w-full min-w-0 flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain rounded-xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--muted)_10%,var(--card))] p-1 lg:flex-wrap',
       className,
     )}
     {...props}
@@ -26,7 +26,7 @@ export const TabsTrigger = forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      'rounded-lg px-4 py-2 text-sm font-medium text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--card)] data-[state=active]:text-[var(--text)] data-[state=active]:shadow-sm',
+      'shrink-0 rounded-lg px-4 py-3 text-base font-medium text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--card)] data-[state=active]:text-[var(--text)] data-[state=active]:shadow-sm min-h-11 lg:py-2.5 lg:text-sm',
       className,
     )}
     {...props}
@@ -40,7 +40,7 @@ export const TabsContent = forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
-    className={cn('mt-6 outline-none', className)}
+    className={cn('mt-4 outline-none lg:mt-6', className)}
     {...props}
   />
 ))

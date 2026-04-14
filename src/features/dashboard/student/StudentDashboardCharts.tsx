@@ -27,7 +27,7 @@ export type StudentAnalyticsApi = {
 }
 
 function cardClass() {
-  return 'rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 text-[var(--text)] shadow-sm transition-colors duration-200'
+  return 'w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--text)] shadow-sm transition-colors duration-200 lg:p-6'
 }
 
 export default function StudentDashboardCharts({
@@ -66,7 +66,7 @@ export default function StudentDashboardCharts({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 lg:space-y-8">
       <div className={cardClass()}>
         <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">
           Overall completion
@@ -106,7 +106,7 @@ export default function StudentDashboardCharts({
         <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">
           Learning activity (minutes / day)
         </h2>
-        <div className="h-64 w-full [&_.recharts-surface]:outline-none">
+        <div className="h-56 min-h-0 w-full min-w-0 sm:h-64 [&_.recharts-surface]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={activity}>
               <ThemedCartesianGrid c={c} />
@@ -135,7 +135,7 @@ export default function StudentDashboardCharts({
         <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">
           Assessment scores over attempts
         </h2>
-        <div className="h-64 w-full [&_.recharts-surface]:outline-none">
+        <div className="h-56 min-h-0 w-full min-w-0 sm:h-64 [&_.recharts-surface]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={scores}>
               <ThemedCartesianGrid c={c} />
@@ -167,7 +167,7 @@ export default function StudentDashboardCharts({
         <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">
           Time spent by course
         </h2>
-        <div className="h-72 w-full [&_.recharts-surface]:outline-none">
+        <div className="h-60 min-h-0 w-full min-w-0 sm:h-72 [&_.recharts-surface]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={timeBars} margin={{ bottom: 48 }}>
               <ThemedCartesianGrid c={c} />

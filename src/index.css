@@ -70,8 +70,14 @@ html {
   transition: color 0.2s ease;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
-  @apply min-h-screen font-sans;
+  @apply min-h-screen min-w-0 overflow-x-hidden font-sans;
   background-color: var(--bg);
   color: var(--text);
   transition: color 0.2s ease;
@@ -79,15 +85,15 @@ body {
 
 @layer base {
   h1 {
-    @apply text-2xl font-bold tracking-tight;
+    @apply text-xl font-bold tracking-tight lg:text-2xl;
     color: var(--text);
   }
   h2 {
-    @apply text-xl font-semibold;
+    @apply text-lg font-semibold lg:text-xl;
     color: var(--text);
   }
   h3 {
-    @apply text-lg font-medium;
+    @apply text-base font-medium lg:text-lg;
     color: var(--text);
   }
   p {
@@ -95,24 +101,24 @@ body {
     color: color-mix(in srgb, var(--text) 88%, var(--muted));
   }
   label {
-    @apply text-sm font-medium;
+    @apply text-base font-medium lg:text-sm;
     color: var(--text);
   }
 }
 
 @layer components {
   .lms-page {
-    @apply mx-auto max-w-7xl space-y-6;
+    @apply mx-auto w-full min-w-0 max-w-7xl space-y-4 lg:space-y-6;
   }
   .lms-card {
-    @apply rounded-2xl border p-6 shadow-sm transition-shadow duration-200 hover:shadow-md;
+    @apply w-full rounded-2xl border p-4 shadow-sm transition-shadow duration-200 hover:shadow-md lg:p-6;
     background-color: var(--card);
     border-color: var(--border);
     color: var(--text);
     box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 5%, transparent);
   }
   .lms-input {
-    @apply w-full rounded-xl px-4 py-2 shadow-sm transition-colors focus:outline-none focus:ring-2;
+    @apply min-h-11 w-full rounded-xl px-4 py-3 text-base shadow-sm transition-colors focus:outline-none focus:ring-2;
     background-color: var(--card);
     border: 1px solid var(--border);
     color: var(--text);
@@ -123,7 +129,7 @@ body {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
   }
   .lms-section {
-    @apply space-y-6;
+    @apply space-y-4 lg:space-y-6;
   }
   .t-surface {
     background-color: var(--card);
@@ -157,6 +163,8 @@ body {
 
 #root {
   min-height: 100vh;
+  min-width: 0;
+  overflow-x: hidden;
   background-color: var(--bg);
 }
 

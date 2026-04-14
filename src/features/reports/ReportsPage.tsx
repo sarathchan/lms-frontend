@@ -58,7 +58,7 @@ export function ReportsPage() {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-3xl space-y-6"
+      className="mx-auto w-full min-w-0 max-w-3xl space-y-4 lg:space-y-6 xl:max-w-4xl"
     >
       <div>
         <h1>Reports</h1>
@@ -72,7 +72,7 @@ export function ReportsPage() {
         <CardHeader className="p-0 pb-4">
           <CardTitle className="text-xl font-semibold">Filters</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 p-0 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:gap-6">
           <div>
             <Label htmlFor="from">From</Label>
             <input
@@ -116,17 +116,17 @@ export function ReportsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-1">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6 xl:grid-cols-3">
         <Card className={cn('rounded-2xl', reportCard)}>
           <CardHeader className="p-0 pb-2">
             <CardTitle className="text-xl font-semibold">
               Attendance report
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 p-0">
+          <CardContent className="flex flex-col gap-2 p-0 sm:flex-row sm:flex-wrap">
             <Button
               type="button"
-              className="rounded-xl"
+              className="w-full rounded-xl sm:w-auto"
               onClick={() =>
                 downloadCsv('reports/attendance.csv', params, 'attendance.csv')
               }
@@ -143,10 +143,10 @@ export function ReportsPage() {
               Course completion
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 p-0">
+          <CardContent className="flex flex-col gap-2 p-0 sm:flex-row sm:flex-wrap">
             <Button
               type="button"
-              className="rounded-xl"
+              className="w-full rounded-xl sm:w-auto"
               variant="secondary"
               onClick={() =>
                 downloadCsv(
@@ -168,10 +168,10 @@ export function ReportsPage() {
               Assessment performance
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 p-0">
+          <CardContent className="flex flex-col gap-2 p-0 sm:flex-row sm:flex-wrap">
             <Button
               type="button"
-              className="rounded-xl"
+              className="w-full rounded-xl sm:w-auto"
               variant="outline"
               onClick={() =>
                 downloadCsv(

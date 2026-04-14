@@ -10,7 +10,7 @@ import { ThemedCartesianGrid } from '../../../components/charts/RechartsThemed'
 import { chartTooltipStyle, useChartTheme } from '../../../lib/chartTheme'
 
 function cardClass() {
-  return 'rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-[var(--text)] shadow-sm transition-colors duration-200'
+  return 'w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--text)] shadow-sm transition-colors duration-200 lg:p-5'
 }
 
 export function ExamTrendCharts({
@@ -37,12 +37,12 @@ export function ExamTrendCharts({
   }))
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
       <div className={cardClass()}>
         <h3 className="mb-3 text-sm font-semibold text-[var(--text)]">
           Accuracy trend (course quizzes)
         </h3>
-        <div className="h-56 w-full [&_.recharts-surface]:outline-none">
+        <div className="h-52 min-h-0 w-full min-w-0 sm:h-56 [&_.recharts-surface]:outline-none">
           {acc.length === 0 ? (
             <p className="text-sm text-[var(--muted)]">
               Answer more quiz questions in your courses to see a trend.
@@ -76,7 +76,7 @@ export function ExamTrendCharts({
         <h3 className="mb-3 text-sm font-semibold text-[var(--text)]">
           Test score trend (program tests)
         </h3>
-        <div className="h-56 w-full [&_.recharts-surface]:outline-none">
+        <div className="h-52 min-h-0 w-full min-w-0 sm:h-56 [&_.recharts-surface]:outline-none">
           {scores.length === 0 ? (
             <p className="text-sm text-[var(--muted)]">
               Complete tests linked to your coaching program to see scores over

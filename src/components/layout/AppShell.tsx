@@ -55,7 +55,7 @@ const navCls = ({
   collapsed: boolean
 }) =>
   clsx(
-    'flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors duration-200',
+    'flex min-h-11 items-center gap-3 rounded-lg py-2 text-sm font-medium transition-colors duration-200',
     collapsed ? 'justify-center px-2' : 'px-3',
     isActive
       ? 'bg-[color-mix(in_srgb,var(--primary)_14%,var(--card))] text-[var(--primary)]'
@@ -98,7 +98,7 @@ function AccountMenuDropdown({
           variant="ghost"
           className={clsx(
             'h-9 gap-2 rounded-xl px-2 text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--muted)_14%,var(--card))]',
-            !compactTrigger && 'sm:pl-2 sm:pr-3',
+            !compactTrigger && 'lg:pl-2 lg:pr-3',
           )}
           aria-label="Account menu"
         >
@@ -109,7 +109,7 @@ function AccountMenuDropdown({
             {initials}
           </div>
           {!compactTrigger && (
-            <span className="hidden max-w-[9rem] truncate text-left text-sm font-medium md:inline">
+            <span className="hidden max-w-[9rem] truncate text-left text-sm font-medium lg:inline">
               {fullName}
             </span>
           )}
@@ -365,8 +365,8 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--bg)] md:flex-row">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-[var(--border)] bg-[var(--sidebar)] px-3 transition-colors duration-200 md:hidden">
+    <div className="flex min-h-screen min-w-0 flex-col bg-[var(--bg)] lg:flex-row">
+      <header className="sticky top-0 z-30 flex h-14 min-w-0 shrink-0 items-center gap-2 border-b border-[var(--border)] bg-[var(--sidebar)] px-3 transition-colors duration-200 lg:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" aria-label="Open menu">
@@ -398,7 +398,7 @@ export function AppShell() {
 
       <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-40 hidden shrink-0 flex-col border-r border-[var(--border)] bg-[var(--sidebar)] transition-[width,background-color,border-color] duration-200 md:flex',
+          'fixed inset-y-0 left-0 z-40 hidden shrink-0 flex-col border-r border-[var(--border)] bg-[var(--sidebar)] transition-[width,background-color,border-color] duration-200 lg:flex',
           sidebarW,
         )}
       >
@@ -447,16 +447,16 @@ export function AppShell() {
 
       <div
         className={clsx(
-          'flex min-h-screen flex-1 flex-col bg-[var(--bg)] transition-[margin] duration-200 md:ml-60',
-          collapsed && 'md:ml-[4.25rem]',
+          'flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--bg)] transition-[margin] duration-200 lg:ml-60',
+          collapsed && 'lg:ml-[4.25rem]',
         )}
       >
-        <header className="sticky top-0 z-20 hidden h-14 items-center justify-end gap-1 border-b border-[var(--border)] bg-[var(--card)] px-4 transition-colors duration-200 sm:px-6 md:flex">
+        <header className="sticky top-0 z-20 hidden h-14 shrink-0 items-center justify-end gap-1 border-b border-[var(--border)] bg-[var(--card)] px-4 transition-colors duration-200 sm:px-6 lg:flex">
           <NotificationBell />
           <AccountMenuDropdown onLogout={() => void handleLogout()} />
         </header>
-        <main className="flex-1 bg-[var(--bg)] p-4 transition-colors duration-200 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl space-y-6">
+        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-[var(--bg)] p-4 transition-colors duration-200 sm:p-6 lg:p-8 max-lg:pb-24">
+          <div className="lms-page">
             <Suspense fallback={<OutletFallback />}>
               <Outlet />
             </Suspense>

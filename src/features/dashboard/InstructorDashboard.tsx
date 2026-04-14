@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/button'
 
 const card =
-  'rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm'
+  'w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm lg:p-6'
 
 type Dash = {
   role: 'INSTRUCTOR'
@@ -46,10 +46,10 @@ export function InstructorDashboard() {
   const difficultyDistribution = data.charts?.difficultyDistribution ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight text-[var(--text)] lg:text-2xl">
             Teaching & content
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -59,14 +59,14 @@ export function InstructorDashboard() {
         </div>
         <Button
           variant="outline"
-          className="rounded-xl"
+          className="w-full rounded-xl sm:w-auto"
           asChild
         >
           <Link to="/questions/new">Add question</Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
         <div className={card}>
           <p className="text-xs font-medium uppercase text-[var(--muted)]">
             Questions created
@@ -108,7 +108,7 @@ export function InstructorDashboard() {
         <h2 className="text-sm font-semibold text-[var(--text)]">
           Your difficulty mix
         </h2>
-        <div className="mt-4 h-56">
+        <div className="mt-4 h-52 min-h-0 w-full min-w-0 sm:h-56">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={difficultyDistribution}>
               <ThemedCartesianGrid c={c} />

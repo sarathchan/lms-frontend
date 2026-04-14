@@ -52,10 +52,10 @@ export function CommunicationListPage() {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-4 lg:space-y-6"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <h1>Communication assessments</h1>
           <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-400">
             {isStudent
@@ -64,7 +64,7 @@ export function CommunicationListPage() {
           </p>
         </div>
         {isStaff && (
-          <Button variant="outline" asChild className="shrink-0 gap-2">
+          <Button variant="outline" asChild className="w-full shrink-0 gap-2 sm:w-auto">
             <Link to="/communication/questions">
               <Settings2 className="h-4 w-4" />
               Staff: manage communication
@@ -74,7 +74,7 @@ export function CommunicationListPage() {
       </div>
 
       {loading && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6">
           <Skeleton className="h-36 w-full rounded-2xl" />
           <Skeleton className="h-36 w-full rounded-2xl" />
         </div>
@@ -87,7 +87,7 @@ export function CommunicationListPage() {
       )}
 
       {isStudent && !loading && mine && mine.length > 0 && (
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6">
           {mine.map((row) => {
             const done = row.latestAttempt?.status === 'SUBMITTED'
             return (
@@ -173,7 +173,7 @@ export function CommunicationListPage() {
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Staff preview — learners only see tests assigned to them.
           </p>
-          <ul className="grid gap-4 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6">
             {published.map((t) => (
               <li key={t.id}>
                 <Link

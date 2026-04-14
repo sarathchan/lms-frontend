@@ -175,6 +175,9 @@ export function CommunicationTakePage() {
       )
       return data
     },
+    onError: () => {
+      toast.error('Could not start the test. Try again or contact support.')
+    },
     onSuccess: (d) => {
       setAttemptId(d.id)
       try {
@@ -322,15 +325,23 @@ export function CommunicationTakePage() {
       ? Math.round((session.currentSection / session.sectionsTotal) * 100)
       : 0
 
+  const showMobileSticky =
+    !attemptId ||
+    (session &&
+      !(session.question.type === 'ESSAY' && essayFocus))
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className={cn(
+        'space-y-4 lg:space-y-6',
+        showMobileSticky && 'pb-36 lg:pb-0',
+      )}
     >
       <Link
         to="/communication"
-        className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+        className="inline-flex min-h-11 items-center rounded-xl text-base font-medium text-indigo-600 transition active:scale-[0.98] hover:bg-indigo-50 hover:text-indigo-700 dark:text-indigo-400 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-300"
       >
         ← All tests
       </Link>
@@ -364,6 +375,8 @@ export function CommunicationTakePage() {
           </div>
           <Button
             size="lg"
+            className="w-full max-lg:hidden lg:w-auto"
+            loading={startMut.isPending}
             disabled={startMut.isPending}
             onClick={() => startMut.mutate()}
           >
@@ -419,7 +432,6 @@ export function CommunicationTakePage() {
                       <Button
                         type="button"
                         variant="outline"
-                        size="sm"
                         className="rounded-xl"
                         onClick={() => setEssayFocus((f) => !f)}
                       >
@@ -450,7 +462,8 @@ export function CommunicationTakePage() {
                   />
                   <Button
                     disabled={advanceMut.isPending}
-                    className="rounded-xl bg-indigo-600 hover:bg-indigo-500"
+                    className="max-lg:hidden w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 sm:w-auto"
+                    loading={advanceMut.isPending}
                     onClick={() => void beforeAdvance()}
                   >
                     Continue to listening
@@ -502,7 +515,8 @@ export function CommunicationTakePage() {
                 />
                 <Button
                   disabled={advanceMut.isPending}
-                  className="rounded-xl bg-indigo-600 hover:bg-indigo-500"
+                  className="max-lg:hidden w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 sm:w-auto"
+                  loading={advanceMut.isPending}
                   onClick={() => void beforeAdvance()}
                 >
                   Continue to speaking
@@ -567,7 +581,8 @@ export function CommunicationTakePage() {
                 />
                 <Button
                   size="lg"
-                  className="rounded-xl bg-indigo-600 hover:bg-indigo-500"
+                  className="max-lg:hidden w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 sm:w-auto"
+                  loading={submitMut.isPending}
                   disabled={submitMut.isPending}
                   onClick={async () => {
                     if (!attemptId || !session) return
@@ -584,6 +599,64 @@ export function CommunicationTakePage() {
           </div>
         </>
       )}
+
+      {!attemptId && (
+        <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+          <Button
+            size="lg"
+            className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500"
+            loading={startMut.isPending}
+            disabled={startMut.isPending}
+            onClick={() => startMut.mutate()}
+          >
+            Start test
+          </Button>
+        </div>
+      )}
+
+      {attemptId &&
+        session &&
+        !(session.question.type === 'ESSAY' && essayFocus) && (
+          <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+            {session.question.type === 'ESSAY' && (
+              <Button
+                className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500"
+                loading={advanceMut.isPending}
+                disabled={advanceMut.isPending}
+                onClick={() => void beforeAdvance()}
+              >
+                Continue to listening
+              </Button>
+            )}
+            {session.question.type === 'LISTENING' && (
+              <Button
+                className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500"
+                loading={advanceMut.isPending}
+                disabled={advanceMut.isPending}
+                onClick={() => void beforeAdvance()}
+              >
+                Continue to speaking
+              </Button>
+            )}
+            {session.question.type === 'SPEAKING' && (
+              <Button
+                size="lg"
+                className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500"
+                loading={submitMut.isPending}
+                disabled={submitMut.isPending}
+                onClick={async () => {
+                  if (!attemptId || !session) return
+                  await api.post(`communication/attempts/${attemptId}/save`, {
+                    responses: mergePayload(),
+                  })
+                  submitMut.mutate()
+                }}
+              >
+                Submit assessment
+              </Button>
+            )}
+          </div>
+        )}
     </motion.div>
   )
 }

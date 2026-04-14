@@ -15,7 +15,7 @@ import { ThemedCartesianGrid } from '../../components/charts/RechartsThemed'
 import { chartTooltipStyle, useChartTheme } from '../../lib/chartTheme'
 
 const card =
-  'rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm'
+  'w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm lg:p-6'
 
 type Dash = {
   role: 'SUPER_ADMIN'
@@ -57,9 +57,9 @@ export function SuperAdminDashboard() {
   const questionUsageStats = data.charts?.questionUsageStats ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">
+        <h1 className="text-xl font-semibold tracking-tight text-[var(--text)] lg:text-2xl">
           System overview
         </h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
@@ -67,7 +67,7 @@ export function SuperAdminDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
         <div className={card}>
           <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
             Total users
@@ -102,10 +102,10 @@ export function SuperAdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         <div className={card}>
           <h2 className="text-sm font-semibold text-[var(--text)]">User growth (30d)</h2>
-          <div className="mt-4 h-64">
+          <div className="mt-4 h-56 min-h-0 w-full min-w-0 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={userGrowth}>
                 <ThemedCartesianGrid c={c} />
@@ -127,7 +127,7 @@ export function SuperAdminDashboard() {
           <h2 className="text-sm font-semibold text-[var(--text)]">
             NEET attempts trend (30d)
           </h2>
-          <div className="mt-4 h-64">
+          <div className="mt-4 h-56 min-h-0 w-full min-w-0 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={testAttemptsTrend}>
                 <ThemedCartesianGrid c={c} />

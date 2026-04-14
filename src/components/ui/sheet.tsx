@@ -43,14 +43,14 @@ export function SheetContent({
       <Dialog.Overlay className="fixed inset-0 z-50 bg-[var(--overlay)]" />
       <Dialog.Content
         className={cn(
-          'fixed z-50 flex h-full w-[min(100%,18rem)] flex-col border-[var(--border)] bg-[var(--card)] text-[var(--text)] shadow-xl',
+          'fixed z-50 flex h-full w-[min(100%,20rem)] flex-col border-[var(--border)] bg-[var(--card)] text-[var(--text)] shadow-xl sm:w-72',
           side === 'left' ? 'left-0 top-0 border-r' : 'right-0 top-0 border-l',
           className,
         )}
       >
         {children}
-        <Dialog.Close className="absolute right-3 top-3 rounded-md p-1 text-[var(--muted)] transition hover:bg-[color-mix(in_srgb,var(--muted)_14%,var(--card))]">
-          <X className="h-5 w-5" />
+        <Dialog.Close className="absolute right-2 top-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-[var(--muted)] transition hover:bg-[color-mix(in_srgb,var(--muted)_14%,var(--card))]">
+          <X className="h-5 w-5 shrink-0" />
         </Dialog.Close>
       </Dialog.Content>
     </Dialog.Portal>

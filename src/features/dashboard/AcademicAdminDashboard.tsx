@@ -14,7 +14,7 @@ import { ThemedCartesianGrid } from '../../components/charts/RechartsThemed'
 import { chartTooltipStyle, useChartTheme } from '../../lib/chartTheme'
 
 const card =
-  'rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm'
+  'w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm lg:p-6'
 
 const SUBJ_ICONS: Record<string, string> = {
   PHYSICS: '⚡',
@@ -67,9 +67,9 @@ export function AcademicAdminDashboard() {
   const colors = [c.chartBlue, c.chartGreen, c.chartPurple]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">
+        <h1 className="text-xl font-semibold tracking-tight text-[var(--text)] lg:text-2xl">
           Academic overview
         </h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
@@ -77,7 +77,7 @@ export function AcademicAdminDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
         <div className={card}>
           <p className="text-xs font-medium uppercase text-[var(--muted)]">
             Attempts (30d)
@@ -105,12 +105,12 @@ export function AcademicAdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         <div className={card}>
           <h2 className="text-sm font-semibold text-[var(--text)]">
             Score distribution (30d)
           </h2>
-          <div className="mt-4 h-64">
+          <div className="mt-4 h-56 min-h-0 w-full min-w-0 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={scoreDistribution}>
                 <ThemedCartesianGrid c={c} />
@@ -126,7 +126,7 @@ export function AcademicAdminDashboard() {
           <h2 className="text-sm font-semibold text-[var(--text)]">
             Subject accuracy
           </h2>
-          <div className="mt-4 h-64">
+          <div className="mt-4 h-56 min-h-0 w-full min-w-0 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={subjectBreakdown} layout="vertical">
                 <ThemedCartesianGrid c={c} />

@@ -412,13 +412,13 @@ export function StudentDashboard() {
       variants={dashboardContainer}
       initial="hidden"
       animate="show"
-      className="space-y-10 pb-8"
+      className="space-y-4 pb-8 lg:space-y-8 xl:space-y-10 max-lg:pb-24"
     >
       <motion.section
         variants={dashboardItem}
         className={cn(
           surface,
-          'relative overflow-hidden p-6 ring-1 ring-[color-mix(in_srgb,var(--text)_6%,transparent)] sm:p-8',
+          'relative overflow-hidden p-4 ring-1 ring-[color-mix(in_srgb,var(--text)_6%,transparent)] sm:p-6 lg:p-8',
         )}
       >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -427,7 +427,7 @@ export function StudentDashboard() {
               <Sparkles className="mr-1 inline-block h-4 w-4 align-text-bottom" />
               Your dashboard
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--text)] sm:text-3xl">
+            <h1 className="text-xl font-bold tracking-tight text-[var(--text)] lg:text-2xl xl:text-3xl">
               Hi, {first}{' '}
               <span aria-hidden className="inline-block">
                 👋
@@ -549,14 +549,14 @@ export function StudentDashboard() {
             <>
               <div
                 className={cn(
-                  'grid gap-4',
+                  'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6',
                   examDash.examType.slug === 'neet'
-                    ? 'sm:grid-cols-2 lg:grid-cols-4'
-                    : 'sm:grid-cols-2 lg:grid-cols-3',
+                    ? 'lg:grid-cols-4'
+                    : 'lg:grid-cols-3',
                 )}
               >
                 {examDash.examType.slug === 'neet' && (
-                  <div className={cn(surface, 'p-5')}>
+                  <div className={cn(surface, 'p-4 lg:p-5')}>
                     <p className="text-xs font-medium uppercase text-[var(--muted)]">
                       Score
                     </p>
@@ -573,7 +573,7 @@ export function StudentDashboard() {
                 )}
                 {examDash.examType.slug === 'neet' &&
                   examDash.predictedAir != null && (
-                    <div className={cn(surface, 'p-5')}>
+                    <div className={cn(surface, 'p-4 lg:p-5')}>
                       <p className="text-xs font-medium uppercase text-[var(--muted)]">
                         Expected AIR
                       </p>
@@ -583,7 +583,7 @@ export function StudentDashboard() {
                     </div>
                   )}
                 {examDash.percentile != null && (
-                  <div className={cn(surface, 'p-5')}>
+                  <div className={cn(surface, 'p-4 lg:p-5')}>
                     <p className="text-xs font-medium uppercase text-[var(--muted)]">
                       Percentile
                     </p>
@@ -600,7 +600,7 @@ export function StudentDashboard() {
                   </div>
                 )}
                 {examDash.predictedRank != null && (
-                  <div className={cn(surface, 'p-5')}>
+                  <div className={cn(surface, 'p-4 lg:p-5')}>
                     <p className="text-xs font-medium uppercase text-[var(--muted)]">
                       {examDash.examType.slug === 'jee'
                         ? 'Cohort rank'
@@ -619,7 +619,7 @@ export function StudentDashboard() {
                 )}
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
                 {examDash.subjects.map((s) => (
                   <motion.div
                     key={s.subjectId}
@@ -698,9 +698,12 @@ export function StudentDashboard() {
               Exam-style tests, cohort rank, and practice links from your assigned batch.
             </p>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             {coaching!.programs.map((prog) => (
-              <div key={prog.programId} className={cn(surface, 'space-y-5 p-5')}>
+              <div
+                key={prog.programId}
+                className={cn(surface, 'space-y-4 p-4 lg:space-y-5 lg:p-5')}
+              >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h3 className="text-base font-semibold text-[var(--text)]">{prog.name}</h3>
@@ -709,7 +712,7 @@ export function StudentDashboard() {
                       {prog.description ? ` · ${prog.description}` : ''}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2">
                       <p className="text-[10px] font-medium uppercase text-[var(--muted)]">Accuracy</p>
                       <p className="text-lg font-bold tabular-nums text-[var(--text)]">
@@ -740,7 +743,7 @@ export function StudentDashboard() {
                 {subjectsForProgram(prog).length > 0 && (
                   <div>
                     <p className="text-sm font-medium text-[var(--text)]">Your subjects</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
                       {subjectsForProgram(prog).map((s) => (
                         <Link
                           key={s.id}
@@ -748,7 +751,7 @@ export function StudentDashboard() {
                           className={cn(
                             surfaceLift,
                             surface,
-                            'inline-flex min-w-[8rem] items-center gap-2 px-4 py-3 text-sm font-medium text-[var(--text)]',
+                            'flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[var(--text)] lg:inline-flex lg:w-auto',
                           )}
                         >
                           <span aria-hidden className="text-lg">
@@ -860,7 +863,7 @@ export function StudentDashboard() {
               </p>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             <div className={cn(surface, 'p-5')}>
               <p className="flex items-center gap-2 text-xs font-medium uppercase text-[var(--muted)]">
                 <Target className="h-3.5 w-3.5" />
@@ -999,7 +1002,7 @@ export function StudentDashboard() {
               'overflow-hidden shadow-md ring-1 ring-[color-mix(in_srgb,var(--text)_5%,transparent)]',
             )}
           >
-            <div className="grid gap-0 sm:grid-cols-[minmax(0,220px)_1fr]">
+            <div className="grid grid-cols-1 gap-0 sm:grid-cols-[minmax(0,220px)_1fr]">
               {data.resume.courseId && (
                 <CourseCover
                   courseId={data.resume.courseId}
@@ -1061,7 +1064,7 @@ export function StudentDashboard() {
               Courses with room to grow—pick one and move forward.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {recommendations.map((c) => (
               <Link
                 key={c.courseId}
@@ -1090,8 +1093,11 @@ export function StudentDashboard() {
         </motion.section>
       )}
 
-      <motion.div variants={dashboardItem} className="grid gap-6 lg:grid-cols-3">
-        <section className={cn(surface, 'p-5 lg:col-span-1')}>
+      <motion.div
+        variants={dashboardItem}
+        className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6"
+      >
+        <section className={cn(surface, 'p-4 lg:col-span-1 lg:p-5')}>
           <div className="flex items-center gap-2 text-[var(--text)]">
             <Flame className="h-5 w-5 text-[var(--primary)]" />
             <h2 className="text-base font-semibold">Learning streak</h2>
@@ -1107,7 +1113,7 @@ export function StudentDashboard() {
           </p>
         </section>
 
-        <section className={cn(surface, 'p-5 lg:col-span-1')}>
+        <section className={cn(surface, 'p-4 lg:col-span-1 lg:p-5')}>
           <div className="flex items-center gap-2 text-[var(--text)]">
             <CalendarCheck className="h-5 w-5 text-[var(--primary)]" />
             <h2 className="text-base font-semibold">Attendance (30d)</h2>
@@ -1123,7 +1129,7 @@ export function StudentDashboard() {
         <section
           className={cn(
             surface,
-            'flex flex-col justify-center p-5 lg:col-span-1',
+            'flex flex-col justify-center p-4 lg:col-span-1 lg:p-5',
             showNudge &&
               'border-[var(--accent-warn-border)] bg-[var(--accent-warn-bg)]',
           )}
@@ -1204,8 +1210,8 @@ export function StudentDashboard() {
       </motion.section>
 
       <motion.section variants={dashboardItem} className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+          <div className="min-w-0">
             <h2 className="text-lg font-semibold text-[var(--text)]">
               Enrolled courses
             </h2>
@@ -1213,7 +1219,12 @@ export function StudentDashboard() {
               Covers, progress, and quick access
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild className="rounded-xl">
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="w-full rounded-xl sm:w-auto"
+          >
             <Link to="/courses">Browse catalog</Link>
           </Button>
         </div>
@@ -1233,7 +1244,7 @@ export function StudentDashboard() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 lg:gap-6">
             {enrolled.map((c, i) => (
               <motion.div
                 key={c.courseId}

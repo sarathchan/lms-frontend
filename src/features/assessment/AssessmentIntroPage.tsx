@@ -93,11 +93,11 @@ export function AssessmentIntroPage() {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-2xl px-4 py-8 sm:py-12"
+      className="mx-auto max-w-2xl space-y-4 px-4 py-8 sm:py-12 lg:space-y-6"
     >
       <Link
         to={`/courses/${data.courseId}`}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+        className="mb-2 inline-flex min-h-11 items-center gap-2 rounded-xl text-base font-medium text-indigo-600 transition active:scale-[0.98] hover:bg-indigo-50 hover:underline dark:text-indigo-400 dark:hover:bg-indigo-950/30"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to course
@@ -125,7 +125,7 @@ export function AssessmentIntroPage() {
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
               Before you start
             </h2>
-            <ul className="mt-3 list-inside list-disc space-y-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+            <ul className="mt-3 list-inside list-disc space-y-3 text-base leading-relaxed text-slate-700 dark:text-slate-300">
               <li>
                 Answer all questions. You can move between questions before
                 submitting.
@@ -149,7 +149,7 @@ export function AssessmentIntroPage() {
           )}
 
           <Button
-            className="h-12 w-full rounded-xl bg-indigo-600 text-base font-semibold shadow-sm hover:bg-indigo-500"
+            className="w-full rounded-xl bg-indigo-600 py-3 text-base font-semibold shadow-sm hover:bg-indigo-500 lg:max-w-md"
             size="lg"
             onClick={() => navigate(`/assessment/${quizId}/take`)}
           >

@@ -32,14 +32,18 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-1/2 top-1/2 z-[100] grid w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 text-[var(--text)] shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+        'fixed z-[100] grid gap-4 border border-[var(--border)] bg-[var(--card)] text-[var(--text)] shadow-lg duration-200',
+        /* Mobile / tablet: bottom sheet, full width */
+        'max-lg:inset-x-0 max-lg:bottom-0 max-lg:top-auto max-lg:h-auto max-lg:max-h-[min(92dvh,100svh)] max-lg:w-full max-lg:translate-x-0 max-lg:translate-y-0 max-lg:overflow-y-auto max-lg:rounded-b-none max-lg:rounded-t-2xl max-lg:border-b-0 max-lg:p-4 max-lg:pt-5 max-lg:data-[state=open]:animate-in max-lg:data-[state=closed]:animate-out max-lg:data-[state=closed]:fade-out-0 max-lg:data-[state=open]:fade-in-0',
+        /* Desktop: centered modal */
+        'lg:inset-auto lg:left-1/2 lg:top-1/2 lg:max-h-[min(90vh,90dvh)] lg:w-[calc(100%-2rem)] lg:max-w-lg lg:-translate-x-1/2 lg:-translate-y-1/2 lg:overflow-visible lg:rounded-xl lg:p-6 lg:data-[state=open]:animate-in lg:data-[state=closed]:animate-out lg:data-[state=closed]:fade-out-0 lg:data-[state=open]:fade-in-0 lg:data-[state=closed]:zoom-out-95 lg:data-[state=open]:zoom-in-95',
         className,
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1 text-[var(--muted)] opacity-80 ring-offset-[var(--bg)] transition hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
-        <X className="h-4 w-4" />
+      <DialogPrimitive.Close className="absolute right-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-[var(--muted)] ring-offset-[var(--bg)] transition hover:bg-[color-mix(in_srgb,var(--muted)_12%,var(--card))] hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] max-lg:right-4 max-lg:top-4 lg:right-4 lg:top-4">
+        <X className="h-5 w-5 shrink-0" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
@@ -66,7 +70,7 @@ function DialogFooter({
   return (
     <div
       className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
+        'flex flex-col-reverse gap-3 max-lg:[&_button]:w-full sm:flex-row sm:justify-end sm:[&_button]:w-auto',
         className,
       )}
       {...props}

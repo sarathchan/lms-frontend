@@ -19,6 +19,7 @@ import {
 } from '../../components/ui/dialog'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { ResponsiveTable } from '../../components/layout/ResponsiveTable'
 
 const ROLES = [
   'SUPER_ADMIN',
@@ -325,16 +326,19 @@ export function UsersPage() {
     })
   }
 
+  const userRows =
+    !isLoading && data ? paginatedData<UserRow>(data) : []
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
+        <div className="min-w-0">
           <h1>Users</h1>
           <p className="text-slate-500 dark:text-slate-400">
             Create, update, and deactivate accounts
           </p>
         </div>
-        <div className="flex flex-wrap items-end gap-2">
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:max-w-none lg:flex-row lg:flex-wrap lg:items-end lg:justify-end">
           <input
             placeholder="Search…"
             value={search}
@@ -342,7 +346,7 @@ export function UsersPage() {
               setSearch(e.target.value)
               setPage(1)
             }}
-            className="min-w-[10rem] flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:col-span-2 lg:max-w-xs"
           />
           <select
             value={roleFilter}
@@ -350,7 +354,7 @@ export function UsersPage() {
               setRoleFilter(e.target.value)
               setPage(1)
             }}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white lg:w-auto"
           >
             <option value="">All roles</option>
             {ROLES.map((r) => (
@@ -365,14 +369,18 @@ export function UsersPage() {
               setActiveFilter(e.target.value)
               setPage(1)
             }}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white lg:w-auto"
           >
             <option value="">All statuses</option>
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
           {canManageUsers && (
-            <Button type="button" onClick={() => setCreateOpen(true)}>
+            <Button
+              type="button"
+              className="w-full sm:col-span-2 lg:w-auto"
+              onClick={() => setCreateOpen(true)}
+            >
               <Plus className="h-4 w-4" />
               Add user
             </Button>
@@ -384,53 +392,119 @@ export function UsersPage() {
         <Skeleton className="h-96" />
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Email</th>
-                  {canSeeOrgs && (
-                    <th className="px-4 py-3 font-medium">Organization</th>
-                  )}
-                  <th className="px-4 py-3 font-medium">Role</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData<UserRow>(data).map((u) => (
-                  <tr
-                    key={u.id}
-                    className="border-b border-slate-100 dark:border-slate-800"
-                  >
-                    <td className="px-4 py-3 text-slate-900 dark:text-white">
-                      {u.firstName} {u.lastName}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                      {u.email}
-                    </td>
-                    {canSeeOrgs && (
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                        {u.organizationId
-                          ? (orgNameById.get(u.organizationId) ?? u.organizationId)
-                          : '—'}
-                      </td>
-                    )}
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-200">
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {u.active ? (
-                        <span className="text-emerald-600">Active</span>
-                      ) : (
-                        <span className="text-slate-400">Inactive</span>
+          <ResponsiveTable
+            desktop={
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left text-sm">
+                  <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Name</th>
+                      <th className="px-4 py-3 font-medium">Email</th>
+                      {canSeeOrgs && (
+                        <th className="px-4 py-3 font-medium">Organization</th>
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-1">
+                      <th className="px-4 py-3 font-medium">Role</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                      <th className="px-4 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userRows.map((u) => (
+                      <tr
+                        key={u.id}
+                        className="border-b border-slate-100 dark:border-slate-800"
+                      >
+                        <td className="px-4 py-3 text-slate-900 dark:text-white">
+                          {u.firstName} {u.lastName}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                          {u.email}
+                        </td>
+                        {canSeeOrgs && (
+                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                            {u.organizationId
+                              ? (orgNameById.get(u.organizationId) ??
+                                u.organizationId)
+                              : '—'}
+                          </td>
+                        )}
+                        <td className="px-4 py-3">
+                          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-200">
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {u.active ? (
+                            <span className="text-emerald-600">Active</span>
+                          ) : (
+                            <span className="text-slate-400">Inactive</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-1">
+                            {canEditOrDeleteUser(u) && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Edit"
+                                onClick={() => openEdit(u)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canEditOrDeleteUser(u) && u.id !== authUser?.id && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Delete"
+                                onClick={() => setDeleteUser(u)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            }
+            mobile={
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {userRows.map((u) => (
+                  <li key={u.id} className="p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 space-y-1">
+                        <p className="font-medium text-slate-900 dark:text-white">
+                          {u.firstName} {u.lastName}
+                        </p>
+                        <p className="break-all text-sm text-slate-600 dark:text-slate-400">
+                          {u.email}
+                        </p>
+                        {canSeeOrgs && (
+                          <p className="text-xs text-slate-500">
+                            Org:{' '}
+                            {u.organizationId
+                              ? (orgNameById.get(u.organizationId) ??
+                                u.organizationId)
+                              : '—'}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-200">
+                            {u.role}
+                          </span>
+                          {u.active ? (
+                            <span className="text-xs text-emerald-600">Active</span>
+                          ) : (
+                            <span className="text-xs text-slate-400">Inactive</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 justify-end gap-1 sm:flex-col sm:items-end">
                         {canEditOrDeleteUser(u) && (
                           <Button
                             type="button"
@@ -454,12 +528,12 @@ export function UsersPage() {
                           </Button>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </div>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </ul>
+            }
+          />
           {data && data.totalPages > 1 && (
             <div className="flex justify-center gap-2 border-t border-slate-200 p-4 dark:border-slate-800">
               <Button
@@ -489,7 +563,7 @@ export function UsersPage() {
       )}
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+        <DialogContent className="lg:max-w-md">
           <DialogHeader>
             <DialogTitle>New user</DialogTitle>
             <DialogDescription>
@@ -527,13 +601,13 @@ export function UsersPage() {
                 </span>
               )}
             </label>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               <label className="grid gap-1 text-sm">
                 <span className="text-slate-600 dark:text-slate-400">
                   First name
                 </span>
                 <input
-                  className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
+                  className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
                   {...createForm.register('firstName')}
                 />
               </label>
@@ -542,7 +616,7 @@ export function UsersPage() {
                   Last name
                 </span>
                 <input
-                  className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
+                  className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
                   {...createForm.register('lastName')}
                 />
               </label>
@@ -678,7 +752,7 @@ export function UsersPage() {
         open={!!editUser}
         onOpenChange={(o) => !o && setEditUser(null)}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+        <DialogContent className="lg:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit user</DialogTitle>
             <DialogDescription>Update profile and access.</DialogDescription>
@@ -708,13 +782,13 @@ export function UsersPage() {
                 {...editForm.register('password')}
               />
             </label>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               <label className="grid gap-1 text-sm">
                 <span className="text-slate-600 dark:text-slate-400">
                   First name
                 </span>
                 <input
-                  className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
+                  className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
                   {...editForm.register('firstName')}
                 />
               </label>
@@ -723,7 +797,7 @@ export function UsersPage() {
                   Last name
                 </span>
                 <input
-                  className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
+                  className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
                   {...editForm.register('lastName')}
                 />
               </label>
