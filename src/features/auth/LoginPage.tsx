@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
@@ -10,8 +10,13 @@ import { z } from 'zod'
 import { useAuthStore, type AuthUser } from '../../stores/authStore'
 import { Button } from '../../components/ui/button'
 import { Label } from '../../components/ui/label'
-import { LoginHeroLottie } from '../../components/visual/LoginHeroLottie'
 import { LottieLoader } from '../../components/feedback/LottieLoader'
+
+const LoginHeroLottie = lazy(() =>
+  import('../../components/visual/LoginHeroLottie').then((m) => ({
+    default: m.LoginHeroLottie,
+  })),
+)
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -23,6 +28,15 @@ type LoginValues = z.infer<typeof loginSchema>
 export function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const navigate = useNavigate()
+  const [showAnimation, setShowAnimation] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const sync = () => setShowAnimation(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     let stored: string | null = null
@@ -104,17 +118,10 @@ export function LoginPage() {
         }}
       />
 
-      <div className="relative z-10 flex min-h-screen flex-col lg:flex-row lg:items-stretch">
-        {/* Illustration — left on large screens, top on small */}
-        <div className="flex flex-1 flex-col justify-center border-b border-slate-200/80 bg-gradient-to-br from-indigo-100/70 via-indigo-50/40 to-white px-6 py-10 sm:px-10 sm:py-12 lg:min-h-0 lg:border-b-0 lg:border-r lg:py-16">
-          <div className="mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[min(100%,400px)]">
-            <LoginHeroLottie className="opacity-[0.98]" />
-          </div>
-        </div>
-
-        {/* Form */}
-        <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8 lg:py-12">
-          <div className="w-full max-w-[420px] rounded-3xl border border-slate-200/90 bg-white/95 p-8 shadow-xl shadow-indigo-950/[0.08] ring-1 ring-slate-900/[0.04] backdrop-blur-md sm:p-10">
+      <div className="relative z-10 grid min-h-screen grid-cols-1 items-stretch lg:grid-cols-2">
+        {/* Form — left on large screens; full width column on mobile */}
+        <div className="flex items-center justify-center px-4 py-10 sm:px-8 lg:py-12">
+          <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-200/90 bg-white/95 p-8 shadow-xl shadow-indigo-950/[0.08] ring-1 ring-slate-900/[0.04] backdrop-blur-md sm:p-10">
             <div className="mb-8 text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700">
                 MYLMS
@@ -127,7 +134,7 @@ export function LoginPage() {
               </p>
             </div>
 
-            <form onSubmit={submit} className="space-y-5">
+            <form onSubmit={submit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="login-email" className="text-slate-700">
                   Email
@@ -217,6 +224,24 @@ export function LoginPage() {
                 /{' '}
                 <span className="font-mono text-slate-500">Password123!</span>
               </p>
+            )}
+          </div>
+        </div>
+
+        {/* Illustration — right on desktop only; decoupled from form state */}
+        <div className="hidden min-h-0 flex-col justify-center border-slate-200/80 bg-gradient-to-br from-indigo-100/70 via-indigo-50/40 to-white px-6 py-10 sm:px-10 sm:py-12 lg:flex lg:border-l lg:py-16">
+          <div className="mx-auto w-full max-w-[min(100%,400px)]">
+            {showAnimation && (
+              <Suspense
+                fallback={
+                  <div
+                    className="mx-auto aspect-square w-full max-w-[min(100%,360px)] rounded-2xl bg-indigo-100/40"
+                    aria-hidden
+                  />
+                }
+              >
+                <LoginHeroLottie className="opacity-[0.98]" />
+              </Suspense>
             )}
           </div>
         </div>

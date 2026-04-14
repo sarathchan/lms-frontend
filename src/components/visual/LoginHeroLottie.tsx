@@ -1,36 +1,45 @@
+import { memo, useMemo } from 'react'
 import { useLottie } from 'lottie-react'
 import { loginEducationAnimation } from '../../assets/lottie/loginEducationAnimation'
 import { cn } from '../../lib/utils'
 
-export function LoginHeroLottie({
-  className,
-  compact,
-  'aria-label': ariaLabel = 'Animation: student learning online at a desk',
-}: {
+type LoginHeroLottieProps = {
   className?: string
   /** Smaller render size for embedding above a form in one card */
   compact?: boolean
   'aria-label'?: string
-}) {
-  const dim = compact
-    ? { width: 320, height: 320 }
-    : { width: 600, height: 600 }
+}
 
-  const { View } = useLottie(
-    {
+function LoginHeroLottieInner({
+  className,
+  compact,
+  'aria-label': ariaLabel = 'Animation: student learning online at a desk',
+}: LoginHeroLottieProps) {
+  const dim = useMemo(
+    () =>
+      compact
+        ? { width: 320, height: 320 }
+        : { width: 600, height: 600 },
+    [compact],
+  )
+
+  const lottieOptions = useMemo(
+    () => ({
       animationData: loginEducationAnimation,
       loop: true,
       autoplay: true,
       className: 'h-auto w-full max-w-full',
-      role: 'img',
+      role: 'img' as const,
       'aria-label': ariaLabel,
       rendererSettings: {
-        preserveAspectRatio: 'xMidYMid meet',
+        preserveAspectRatio: 'xMidYMid meet' as const,
         progressiveLoad: true,
       },
-    },
-    dim,
+    }),
+    [ariaLabel],
   )
+
+  const { View } = useLottie(lottieOptions, dim)
 
   return (
     <div
@@ -46,3 +55,5 @@ export function LoginHeroLottie({
     </div>
   )
 }
+
+export const LoginHeroLottie = memo(LoginHeroLottieInner)
