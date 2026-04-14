@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { Lock } from 'lucide-react'
+import { Eye, EyeOff, Lock } from 'lucide-react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { getApiBaseUrl } from '../../lib/apiConfig'
@@ -29,6 +29,7 @@ export function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const navigate = useNavigate()
   const [showAnimation, setShowAnimation] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
@@ -164,12 +165,24 @@ export function LoginPage() {
                   />
                   <input
                     id="login-password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     placeholder="Enter your password"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/90 py-3 pl-10 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/25"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/90 py-3 pl-10 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/25"
                     {...form.register('password')}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" aria-hidden />
+                    ) : (
+                      <Eye className="h-4 w-4" aria-hidden />
+                    )}
+                  </button>
                 </div>
                 {form.formState.errors.password && (
                   <p className="text-sm text-red-600">

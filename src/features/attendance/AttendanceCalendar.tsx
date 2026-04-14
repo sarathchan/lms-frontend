@@ -35,6 +35,13 @@ type CalEv = {
   resource?: string
 }
 
+/** Parse YYYY-MM-DD at local midday so the calendar day matches the string in every timezone. */
+function parseLocalYmd(ymd: string, middayHour = 12): Date {
+  const [y, m, d] = ymd.split('-').map((x) => parseInt(x, 10))
+  if (!y || !m || !d) return new Date(ymd)
+  return new Date(y, m - 1, d, middayHour, 0, 0, 0)
+}
+
 export function AttendanceCalendar({
   events,
   defaultView = 'month',
@@ -46,8 +53,8 @@ export function AttendanceCalendar({
     const out: CalEv[] = []
     for (const e of events) {
       if (e.startDate && e.endDate) {
-        const start = new Date(`${e.startDate}T12:00:00.000Z`)
-        const lastInclusive = new Date(`${e.endDate}T12:00:00.000Z`)
+        const start = parseLocalYmd(e.startDate)
+        const lastInclusive = parseLocalYmd(e.endDate)
         const endExclusive = addDays(lastInclusive, 1)
         out.push({
           title: e.title,
@@ -57,7 +64,7 @@ export function AttendanceCalendar({
           resource: e.color,
         })
       } else if (e.date) {
-        const t = new Date(`${e.date}T12:00:00.000Z`)
+        const t = parseLocalYmd(e.date)
         out.push({
           title: e.title,
           start: t,

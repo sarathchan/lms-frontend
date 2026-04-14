@@ -101,52 +101,58 @@ export function AdminDashboard() {
     return p
   }, [from, to, courseId, teamId])
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['analytics', 'admin', params],
+  type ActiveSessionsPayload = {
+    active: {
+      id: string
+      lastActive: string
+      user: { email: string; firstName: string; lastName: string }
+    }[]
+  }
+  type HistorySessionsPayload = {
+    data: {
+      id: string
+      createdAt: string
+      logoutAt: string | null
+      durationSec: number | null
+      ip: string | null
+      userAgent: string | null
+      user: { email: string; firstName: string; lastName: string }
+    }[]
+    total: number
+  }
+
+  const { data: adminBundle, isLoading } = useQuery({
+    queryKey: ['admin-dashboard-bundle', params, showAdminSessionPanels],
     queryFn: async () => {
-      const { data } = await api.get<AdminAnalyticsResponse>('analytics/admin', {
+      const analyticsReq = api.get<AdminAnalyticsResponse>('analytics/admin', {
         params,
       })
-      return data
-    },
-  })
-
-  const { data: activeSess } = useQuery({
-    queryKey: ['sessions', 'admin', 'active'],
-    queryFn: async () => {
-      const { data } = await api.get<{
-        active: {
-          id: string
-          lastActive: string
-          user: { email: string; firstName: string; lastName: string }
-        }[]
-      }>('sessions/admin/active')
-      return data
-    },
-    enabled: showAdminSessionPanels,
-  })
-
-  const { data: histSess } = useQuery({
-    queryKey: ['sessions', 'admin', 'history'],
-    queryFn: async () => {
-      const { data } = await api.get(`sessions/admin/history`, {
-        params: { page: 1, limit: 25 },
-      })
-      return data as {
-        data: {
-          id: string
-          createdAt: string
-          logoutAt: string | null
-          durationSec: number | null
-          ip: string | null
-          userAgent: string | null
-          user: { email: string; firstName: string; lastName: string }
-        }[]
-        total: number
+      if (!showAdminSessionPanels) {
+        const { data: analytics } = await analyticsReq
+        return {
+          analytics,
+          activeSess: null as ActiveSessionsPayload | null,
+          histSess: null as HistorySessionsPayload | null,
+        }
+      }
+      const [ar, asr, hsr] = await Promise.all([
+        analyticsReq,
+        api.get<ActiveSessionsPayload>('sessions/admin/active'),
+        api.get<HistorySessionsPayload>('sessions/admin/history', {
+          params: { page: 1, limit: 25 },
+        }),
+      ])
+      return {
+        analytics: ar.data,
+        activeSess: asr.data,
+        histSess: hsr.data,
       }
     },
-    enabled: showAdminSessionPanels,
   })
+
+  const data = adminBundle?.analytics
+  const activeSess = adminBundle?.activeSess ?? undefined
+  const histSess = adminBundle?.histSess ?? undefined
 
   const chartPayload = data
     ? {

@@ -113,7 +113,11 @@ export function CourseDetailPage() {
     return m
   }, [outline])
 
-  const { data: enrollPage } = useQuery({
+  const {
+    data: enrollPage,
+    isLoading: enrollLoading,
+    isError: enrollError,
+  } = useQuery({
     queryKey: ['enrollments', id],
     queryFn: async () => {
       const { data } = await api.get(`enrollments/courses/${id}`, {
@@ -140,12 +144,16 @@ export function CourseDetailPage() {
     onSuccess: () => {
       toast.success('Removed enrollment')
       void qc.invalidateQueries({ queryKey: ['enrollments', id] })
+      void qc.invalidateQueries({ queryKey: ['assignments', id] })
+    },
+    onError: () => {
+      toast.error('Could not remove enrollment')
     },
   })
 
   const togglePublish = useMutation({
     mutationFn: (published: boolean) =>
-      api.patch(`courses/${id}`, { published }),
+      api.post(`courses/${id}/update`, { published }),
     onSuccess: () => {
       toast.success('Course updated')
       void qc.invalidateQueries({ queryKey: ['course', id] })
@@ -253,37 +261,68 @@ export function CourseDetailPage() {
         />
       )}
 
-      {isStaff &&
-        paginatedData(enrollPage).length > 0 && (
+      {isStaff && id && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Assigned learners</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {(paginatedData(enrollPage) as { user: { id: string; email: string; firstName: string; lastName: string } }[]).map(
-                (row) => (
-                  <li
-                    key={row.user.id}
-                    className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
-                  >
-                    <span>
-                      {row.user.firstName} {row.user.lastName}{' '}
-                      <span className="text-slate-500">({row.user.email})</span>
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600"
-                      onClick={() => unassign.mutate(row.user.id)}
-                    >
-                      Remove
-                    </Button>
-                  </li>
-                ),
-              )}
-            </ul>
+            {enrollLoading ? (
+              <div className="space-y-2" aria-busy="true">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : enrollError ? (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Could not load enrollments. Try again.
+              </p>
+            ) : paginatedData(enrollPage).length === 0 ? (
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                No learners assigned yet. Use Assign to add students or teams.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[320px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-xs uppercase text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                      <th className="pb-2 pr-4 font-medium">Name</th>
+                      <th className="pb-2 pr-4 font-medium">Email</th>
+                      <th className="pb-2 text-right font-medium"> </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {(
+                      paginatedData(enrollPage) as {
+                        userId: string
+                        name: string
+                        email: string
+                      }[]
+                    ).map((row) => (
+                      <tr key={row.userId}>
+                        <td className="py-2.5 pr-4 font-medium text-slate-900 dark:text-slate-100">
+                          {row.name}
+                        </td>
+                        <td className="py-2.5 pr-4 text-slate-600 dark:text-slate-400">
+                          {row.email}
+                        </td>
+                        <td className="py-2.5 text-right">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600"
+                            disabled={unassign.isPending}
+                            onClick={() => unassign.mutate(row.userId)}
+                          >
+                            Remove
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

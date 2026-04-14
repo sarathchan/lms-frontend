@@ -226,6 +226,7 @@ export function LearnLessonPage() {
   const [tocOpen, setTocOpen] = useState(false)
   const [videoBuffering, setVideoBuffering] = useState(false)
   const [bufferAheadPct, setBufferAheadPct] = useState(0)
+  const [videoError, setVideoError] = useState(false)
   const completionBaseline = useRef<boolean | null>(null)
   const user = useAuthStore((s) => s.user)
 
@@ -259,6 +260,7 @@ export function LearnLessonPage() {
 
   useEffect(() => {
     setBufferAheadPct(0)
+    setVideoError(false)
   }, [lessonId])
 
   /** Warm TLS to the API origin so the lesson JSON (and presigned URL) returns sooner. */
@@ -703,7 +705,7 @@ export function LearnLessonPage() {
                       className="aspect-video w-full"
                       controls
                       playsInline
-                      preload="auto"
+                      preload="metadata"
                       // @ts-expect-error fetchPriority is supported on HTMLMediaElement in Chromium; React DOM types omit it for <video>
                       fetchPriority="high"
                       onLoadStart={() => {
@@ -726,7 +728,10 @@ export function LearnLessonPage() {
                       onLoadedData={(e) => {
                         setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
                       }}
-                      onError={() => setVideoBuffering(false)}
+                      onError={() => {
+                        setVideoBuffering(false)
+                        setVideoError(true)
+                      }}
                       onLoadedMetadata={(e) => {
                         const el = e.currentTarget
                         if (resumeSec > 0 && resumeSec < 2) {
@@ -744,7 +749,7 @@ export function LearnLessonPage() {
                         style={{ width: `${bufferAheadPct}%` }}
                       />
                     </div>
-                    {videoBuffering && (
+                    {videoBuffering && !videoError && (
                       <div
                         className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/35"
                         aria-hidden
@@ -755,6 +760,29 @@ export function LearnLessonPage() {
                             Loading video…
                           </span>
                         </div>
+                      </div>
+                    )}
+                    {videoError && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center">
+                        <p className="text-sm text-slate-200">
+                          This video could not be played. The link may have expired
+                          or your network blocked the stream.
+                        </p>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="rounded-xl"
+                          onClick={() => {
+                            setVideoError(false)
+                            setVideoBuffering(true)
+                            void qc.invalidateQueries({
+                              queryKey: ['progress', 'lesson', lessonId],
+                            })
+                          }}
+                        >
+                          Retry
+                        </Button>
                       </div>
                     )}
                   </>

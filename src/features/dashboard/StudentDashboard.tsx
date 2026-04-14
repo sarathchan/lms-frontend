@@ -297,6 +297,7 @@ export function StudentDashboard() {
       }))
       setExamSlugOverride(data.activeExamType?.slug ?? null)
       void qc.invalidateQueries({ queryKey: ['analytics', 'student-exam'] })
+      void qc.invalidateQueries({ queryKey: ['student-dashboard-bundle'] })
       toast.success('Switched exam view')
     },
     onError: () => toast.error('Could not switch exam'),
@@ -308,32 +309,32 @@ export function StudentDashboard() {
     activeExamSlug,
   )
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['analytics', 'user'],
+  const { data: dashBundle, isLoading } = useQuery({
+    queryKey: ['student-dashboard-bundle', user?.role],
     queryFn: async () => {
-      const { data } = await api.get<UserDashboardResponse>('analytics/user')
-      return data
+      const [userRes, coachRes, commRes] = await Promise.allSettled([
+        api.get<UserDashboardResponse>('analytics/user'),
+        api.get<ProgramsMeOverview>('programs/me/overview'),
+        user?.role === 'STUDENT'
+          ? api.get<CommAssignmentMine[]>('communication/assignments/me')
+          : Promise.resolve({ data: [] as CommAssignmentMine[] }),
+      ])
+      if (userRes.status === 'rejected') throw userRes.reason
+      return {
+        user: userRes.value.data,
+        coaching:
+          coachRes.status === 'fulfilled'
+            ? coachRes.value.data
+            : ({ programs: [] } satisfies ProgramsMeOverview),
+        commAssigned:
+          commRes.status === 'fulfilled' ? commRes.value.data : [],
+      }
     },
   })
 
-  const { data: coaching } = useQuery({
-    queryKey: ['programs', 'me', 'overview'],
-    queryFn: async () => {
-      const { data } = await api.get<ProgramsMeOverview>('programs/me/overview')
-      return data
-    },
-  })
-
-  const { data: commAssigned } = useQuery({
-    queryKey: ['communication', 'assignments', 'me'],
-    queryFn: async () => {
-      const { data } = await api.get<CommAssignmentMine[]>(
-        'communication/assignments/me',
-      )
-      return data
-    },
-    enabled: user?.role === 'STUDENT',
-  })
+  const data = dashBundle?.user
+  const coaching = dashBundle?.coaching
+  const commAssigned = dashBundle?.commAssigned ?? []
 
   const startNeetTest = useMutation({
     mutationFn: async (testId: string) => {
@@ -345,6 +346,7 @@ export function StudentDashboard() {
     onSuccess: (res) => {
       void qc.invalidateQueries({ queryKey: ['neet'] })
       void qc.invalidateQueries({ queryKey: ['programs', 'me', 'overview'] })
+      void qc.invalidateQueries({ queryKey: ['student-dashboard-bundle'] })
       window.location.href = `/neet/exam/${res.attemptId}`
     },
   })

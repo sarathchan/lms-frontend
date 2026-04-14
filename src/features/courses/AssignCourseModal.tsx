@@ -88,6 +88,29 @@ export function AssignCourseModal({
     enabled: open,
   })
 
+  const { data: assignedPage, isLoading: assignedLoading } = useQuery({
+    queryKey: ['enrollments', courseId],
+    queryFn: async () => {
+      const { data } = await api.get(`enrollments/courses/${courseId}`, {
+        params: { page: 1, limit: 100 },
+      })
+      return data
+    },
+    enabled: open,
+  })
+
+  const removeAssignedMut = useMutation({
+    mutationFn: (userId: string) =>
+      api.delete(`enrollments/courses/${courseId}/users/${userId}`),
+    onSuccess: () => {
+      toast.success('Learner removed from course')
+      void qc.invalidateQueries({ queryKey: ['enrollments', courseId] })
+      void qc.invalidateQueries({ queryKey: ['assignments', courseId] })
+      void qc.invalidateQueries({ queryKey: ['courses'] })
+    },
+    onError: () => toast.error('Could not remove learner'),
+  })
+
   const assignMut = useMutation({
     mutationFn: () =>
       api.post(`enrollments/courses/${courseId}`, {
@@ -102,8 +125,10 @@ export function AssignCourseModal({
       setTeamsPick(new Set())
       onOpenChange(false)
       void qc.invalidateQueries({ queryKey: ['enrollments', courseId] })
+      void qc.invalidateQueries({ queryKey: ['assignments', courseId] })
       void qc.invalidateQueries({ queryKey: ['courses'] })
     },
+    onError: () => toast.error('Assignment failed'),
   })
 
   const users = paginatedData(usersData) as UserRow[]
@@ -139,6 +164,53 @@ export function AssignCourseModal({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-4 sm:px-6">
+          <section className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              Currently assigned
+            </h3>
+            {assignedLoading ? (
+              <p className="text-sm text-slate-500">Loading roster…</p>
+            ) : paginatedData(assignedPage).length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                No learners on this course yet.
+              </p>
+            ) : (
+              <ul className="max-h-40 space-y-1 overflow-y-auto text-sm">
+                {(
+                  paginatedData(assignedPage) as {
+                    userId: string
+                    name: string
+                    email: string
+                  }[]
+                ).map((row) => (
+                  <li
+                    key={row.userId}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-100 bg-white px-2 py-1.5 dark:border-slate-800 dark:bg-slate-950"
+                  >
+                    <span className="min-w-0">
+                      <span className="font-medium text-slate-900 dark:text-slate-100">
+                        {row.name}
+                      </span>
+                      <span className="ml-2 break-all text-slate-600 dark:text-slate-400">
+                        {row.email}
+                      </span>
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0 text-red-600"
+                      disabled={removeAssignedMut.isPending}
+                      onClick={() => removeAssignedMut.mutate(row.userId)}
+                    >
+                      Remove
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
           <section className="space-y-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">

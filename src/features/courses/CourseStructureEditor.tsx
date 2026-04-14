@@ -391,7 +391,7 @@ function ModuleLessons({
   const [titleEdit, setTitleEdit] = useState(mod.title)
   const saveTitle = useMutation({
     mutationFn: () =>
-      api.patch(`courses/modules/${mod.id}`, { title: titleEdit }),
+      api.post(`courses/modules/${mod.id}/update`, { title: titleEdit }),
     onSuccess: () => {
       toast.success('Module saved')
       onInvalidate()
