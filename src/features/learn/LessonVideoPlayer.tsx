@@ -1,84 +1,86 @@
-import { useEffect, type RefObject, type VideoHTMLAttributes } from 'react'
-
-export function isHlsSource(src: string, mimeType?: string | null) {
-  const m = (mimeType ?? '').toLowerCase()
-  if (
-    m.includes('mpegurl') ||
-    m.includes('m3u8') ||
-    m.includes('application/vnd.apple.mpegurl')
-  ) {
-    return true
-  }
-  try {
-    const path = new URL(src, window.location.href).pathname.toLowerCase()
-    return path.endsWith('.m3u8')
-  } catch {
-    return src.toLowerCase().includes('.m3u8')
-  }
-}
+import { useEffect, useState, type RefObject, type VideoHTMLAttributes } from 'react'
+import { Loader2 } from 'lucide-react'
 
 type LessonVideoPlayerProps = {
   videoRef: RefObject<HTMLVideoElement | null>
   src: string
   mimeType?: string | null
+  /** Resume position in seconds (native progressive + range requests). */
+  resumeAtSec?: number
 } & Omit<VideoHTMLAttributes<HTMLVideoElement>, 'src' | 'ref'>
 
 /**
- * MP4/WebM: native progressive streaming (Range requests).
- * HLS (.m3u8): loads `hls.js` on demand for adaptive streaming (Chrome/Firefox).
+ * Native MP4/WebM playback (CloudFront/S3 with Range requests). Includes lightweight buffering UI.
  */
 export function LessonVideoPlayer({
   videoRef,
   src,
   mimeType,
+  resumeAtSec = 0,
+  onLoadStart,
+  onWaiting,
+  onPlaying,
+  onCanPlay,
   ...videoProps
 }: LessonVideoPlayerProps) {
+  const [loading, setLoading] = useState(!!src)
+
+  useEffect(() => {
+    setLoading(!!src)
+  }, [src])
+
   useEffect(() => {
     const video = videoRef.current
     if (!video || !src) return
-
-    const hlsMode = isHlsSource(src, mimeType)
-
-    if (!hlsMode) {
-      video.src = src
-      video.load()
-      return () => {
-        video.removeAttribute('src')
-        video.load()
+    const onMeta = () => {
+      if (resumeAtSec > 0 && video.duration && resumeAtSec < video.duration) {
+        video.currentTime = resumeAtSec
       }
     }
+    video.addEventListener('loadedmetadata', onMeta, { once: true })
+    return () => video.removeEventListener('loadedmetadata', onMeta)
+  }, [src, resumeAtSec, videoRef])
 
-    let cancelled = false
-    const hlsRef: { current: import('hls.js').default | null } = { current: null }
+  const type =
+    mimeType && mimeType.includes('/')
+      ? mimeType
+      : 'video/mp4'
 
-    void import('hls.js').then(({ default: Hls }) => {
-      if (cancelled || videoRef.current !== video) return
-      if (Hls.isSupported()) {
-        const instance = new Hls({
-          enableWorker: true,
-          lowLatencyMode: false,
-          startFragPrefetch: true,
-          maxBufferLength: 45,
-          maxMaxBufferLength: 300,
-          maxBufferSize: 120 * 1000 * 1000,
-          maxBufferHole: 0.5,
-        })
-        hlsRef.current = instance
-        instance.loadSource(src)
-        instance.attachMedia(video)
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = src
-      }
-    })
-
-    return () => {
-      cancelled = true
-      hlsRef.current?.destroy()
-      hlsRef.current = null
-      video.removeAttribute('src')
-      video.load()
-    }
-  }, [src, mimeType, videoRef])
-
-  return <video ref={videoRef} {...videoProps} />
+  return (
+    <div className="relative">
+      <video
+        ref={videoRef}
+        key={src}
+        preload="metadata"
+        playsInline
+        onLoadStart={(e) => {
+          setLoading(true)
+          onLoadStart?.(e)
+        }}
+        onWaiting={(e) => {
+          setLoading(true)
+          onWaiting?.(e)
+        }}
+        onPlaying={(e) => {
+          setLoading(false)
+          onPlaying?.(e)
+        }}
+        onCanPlay={(e) => {
+          setLoading(false)
+          onCanPlay?.(e)
+        }}
+        {...videoProps}
+      >
+        {src ? <source src={src} type={type} /> : null}
+      </video>
+      {loading && src && (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/35"
+          aria-hidden
+        >
+          <Loader2 className="h-10 w-10 animate-spin text-white/90" />
+        </div>
+      )}
+    </div>
+  )
 }

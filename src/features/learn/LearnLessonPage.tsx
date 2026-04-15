@@ -35,6 +35,16 @@ import { formatCourseProgressLabel } from '../../lib/formatCourseProgressLabel'
 import { getApiOrigin } from '../../lib/apiConfig'
 import { LessonVideoPlayer } from './LessonVideoPlayer'
 
+function readLocalVideoPos(courseId: string, lessonId: string): number {
+  try {
+    const v = localStorage.getItem(`mylms:vp:${courseId}:${lessonId}`)
+    const n = v ? parseInt(v, 10) : 0
+    return Number.isFinite(n) ? n : 0
+  } catch {
+    return 0
+  }
+}
+
 function readTimelineBufferedPct(video: HTMLVideoElement): number {
   if (!video.buffered.length || !video.duration || !Number.isFinite(video.duration))
     return 0
@@ -86,7 +96,6 @@ type LessonCtx = {
   courseTitle: string
   quizId: string | null
   playbackUrl: string | null
-  /** When set, helps pick HLS vs MP4 and hints the decoder. */
   playbackMime?: string | null
   externalUrl: string | null
   progress: {
@@ -224,7 +233,6 @@ export function LearnLessonPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [pdfPages, setPdfPages] = useState<number | null>(null)
   const [tocOpen, setTocOpen] = useState(false)
-  const [videoBuffering, setVideoBuffering] = useState(false)
   const [bufferAheadPct, setBufferAheadPct] = useState(0)
   const [videoError, setVideoError] = useState(false)
   const completionBaseline = useRef<boolean | null>(null)
@@ -364,6 +372,13 @@ export function LearnLessonPage() {
     return out
   }, [outline])
 
+  const resumeVideoSec = useMemo(() => {
+    if (!courseId || !lessonId || !ctx) return 0
+    const server = Math.floor(ctx.progress?.videoPositionSec ?? 0)
+    const local = readLocalVideoPos(courseId, lessonId)
+    return Math.max(server, local)
+  }, [courseId, lessonId, ctx?.progress?.videoPositionSec])
+
   const nextLesson = useMemo(() => {
     const i = flatLessons.findIndex((l) => l.id === lessonId)
     if (i < 0 || i >= flatLessons.length - 1) return null
@@ -481,17 +496,21 @@ export function LearnLessonPage() {
 
   useEffect(() => {
     const v = videoRef.current
-    if (!v || !ctx || ctx.lesson.type !== 'VIDEO') return
+    if (!v || !ctx || ctx.lesson.type !== 'VIDEO' || !courseId || !lessonId) return
     const src = ctx.playbackUrl || ctx.externalUrl
     if (!src) return
-    const start = ctx.progress?.videoPositionSec ?? 0
-    if (start > 0 && v.readyState >= 1) {
-      v.currentTime = start
-    }
     const onTime = () => {
       if (!v.duration || !Number.isFinite(v.duration)) return
       const pct = Math.min(100, Math.round((v.currentTime / v.duration) * 100))
       sendVideoProgress(Math.floor(v.currentTime), pct)
+      try {
+        localStorage.setItem(
+          `mylms:vp:${courseId}:${lessonId}`,
+          String(Math.floor(v.currentTime)),
+        )
+      } catch {
+        /* ignore private mode / quota */
+      }
     }
     v.addEventListener('timeupdate', onTime)
     v.addEventListener('pause', onTime)
@@ -499,7 +518,7 @@ export function LearnLessonPage() {
       v.removeEventListener('timeupdate', onTime)
       v.removeEventListener('pause', onTime)
     }
-  }, [ctx, sendVideoProgress])
+  }, [ctx, courseId, lessonId, sendVideoProgress])
 
   const onPdfScroll = () => {
     const el = scrollRef.current
@@ -537,19 +556,6 @@ export function LearnLessonPage() {
   }
 
   const videoSrc = ctx.playbackUrl || ctx.externalUrl
-  const resumeSec = Math.floor(ctx.progress?.videoPositionSec ?? 0)
-  const videoSrcWithResume =
-    videoSrc && resumeSec >= 2
-      ? (() => {
-          try {
-            const u = new URL(videoSrc)
-            u.hash = `t=${resumeSec}`
-            return u.toString()
-          } catch {
-            return `${videoSrc}#t=${resumeSec}`
-          }
-        })()
-      : videoSrc
   const pdfSrc = ctx.playbackUrl || ctx.externalUrl
   const completed = ctx.progress?.completed ?? false
 
@@ -700,8 +706,9 @@ export function LearnLessonPage() {
                     <LessonVideoPlayer
                       key={lessonId}
                       videoRef={videoRef}
-                      src={videoSrcWithResume ?? ''}
+                      src={videoSrc}
                       mimeType={ctx.playbackMime}
+                      resumeAtSec={resumeVideoSec}
                       className="aspect-video w-full"
                       controls
                       playsInline
@@ -710,7 +717,6 @@ export function LearnLessonPage() {
                       fetchPriority="high"
                       onLoadStart={() => {
                         setBufferAheadPct(0)
-                        setVideoBuffering(true)
                       }}
                       onProgress={(e) =>
                         setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
@@ -718,25 +724,23 @@ export function LearnLessonPage() {
                       onTimeUpdate={(e) =>
                         setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
                       }
-                      onWaiting={() => setVideoBuffering(true)}
-                      onStalled={() => setVideoBuffering(true)}
-                      onPlaying={() => setVideoBuffering(false)}
+                      onWaiting={(e) =>
+                        setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
+                      }
+                      onStalled={(e) =>
+                        setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
+                      }
+                      onPlaying={(e) =>
+                        setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
+                      }
                       onCanPlay={(e) => {
-                        setVideoBuffering(false)
                         setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
                       }}
                       onLoadedData={(e) => {
                         setBufferAheadPct(readTimelineBufferedPct(e.currentTarget))
                       }}
                       onError={() => {
-                        setVideoBuffering(false)
                         setVideoError(true)
-                      }}
-                      onLoadedMetadata={(e) => {
-                        const el = e.currentTarget
-                        if (resumeSec > 0 && resumeSec < 2) {
-                          el.currentTime = resumeSec
-                        }
                       }}
                     />
                     <div
@@ -749,19 +753,6 @@ export function LearnLessonPage() {
                         style={{ width: `${bufferAheadPct}%` }}
                       />
                     </div>
-                    {videoBuffering && !videoError && (
-                      <div
-                        className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/35"
-                        aria-hidden
-                      >
-                        <div className="flex flex-col items-center gap-2 text-white">
-                          <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                          <span className="text-xs font-medium opacity-90">
-                            Loading video…
-                          </span>
-                        </div>
-                      </div>
-                    )}
                     {videoError && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center">
                         <p className="text-sm text-slate-200">
@@ -775,7 +766,6 @@ export function LearnLessonPage() {
                           className="rounded-xl"
                           onClick={() => {
                             setVideoError(false)
-                            setVideoBuffering(true)
                             void qc.invalidateQueries({
                               queryKey: ['progress', 'lesson', lessonId],
                             })
