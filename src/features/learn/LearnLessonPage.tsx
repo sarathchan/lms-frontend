@@ -419,9 +419,9 @@ export function LearnLessonPage() {
     return firstIncompleteLessonBefore(flatLessons, lessonId)
   }, [ctx, lessonId, user?.role, flatLessons])
 
-  const invalidate = () => {
+  /** After progress save: refresh outline/course totals only. Do NOT invalidate the lesson query — it refetches a new signed `playbackUrl` and remounts `<video>`, which resets playback every few seconds. */
+  const invalidateAfterProgressSave = () => {
     void qc.invalidateQueries({ queryKey: ['progress', 'outline', courseId] })
-    void qc.invalidateQueries({ queryKey: ['progress', 'lesson', lessonId] })
     void qc.invalidateQueries({ queryKey: ['progress', 'course', courseId] })
   }
 
@@ -469,7 +469,7 @@ export function LearnLessonPage() {
         qc.setQueryData(['progress', 'lesson', lessonId], prev)
       }
     },
-    onSettled: () => invalidate(),
+    onSettled: () => invalidateAfterProgressSave(),
   })
 
   const sendVideoProgress = useThrottledCallback(

@@ -50,7 +50,6 @@ export function LessonVideoPlayer({
     <div className="relative">
       <video
         ref={videoRef}
-        key={src}
         preload="metadata"
         playsInline
         onLoadStart={(e) => {
